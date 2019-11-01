@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+   <head>
+      <title>Название страницы</title>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+      <script src="https://api-maps.yandex.ru/2.1/?apikey=<4f266832-6999-4dd9-8e72-85b8fc143c69>&lang=ru_RU" type="text/javascript">
+      </script>
+
+      <script type="text/javascript">
+         ymaps.ready(init);
+         var myMap;
+
+
+         // Функция построения карты
+         function init() 
+         {
+            myMap = new ymaps.Map("map", {
+               center: [54.9926, 82.9136], // изначальный центр карты
+               zoom: 15,                    // параметр масштабирования
+               //элементы управления
+               controls: []
+            });
+
+            // Подключаем кнопку "показать на весь экран"
+            var fullscreenControl = new ymaps.control.FullscreenControl({ options: {float: "right"}});
+            myMap.controls.add(fullscreenControl); // присоединяем к карте
+
+            // Кнопка "тип карты"
+            var typeSelector = new ymaps.control.TypeSelector({ options: { float: "left" } });
+            myMap.controls.add(typeSelector); // присоединяем к карте
+
+            // Ползунок масштабирования
+            var zoomControl = new ymaps.control.ZoomControl(
+               { 
+                  options: 
+                  { 
+                     position: 
+                     { 
+                        right: 10,
+                        top: 50 
+                     }, 
+                     size: "large" 
+                  } 
+               });
+            myMap.controls.add(zoomControl); // присоединяем к карте
+         }
+
+         function rect_init() 
+         {
+            var center_point = myMap.getCenter();
+            var left_point = myMap.getCenter();
+            var right_point = myMap.getCenter();
+
+            left_point[0] -= 0.0001;
+            left_point[1] -= 0.0001;
+
+            right_point[0] += 0.0001;
+            right_point[1] += 0.0001;
+
+            myRectangle = new ymaps.Polygon([
+                  [         
+                     [ left_point[0], left_point[1] ],
+                     [ right_point[0], left_point[1] ],
+                     [ right_point[0], left_point[1] ],
+                     [ right_point[0], right_point[1] ],
+                     [ left_point[0], right_point[1] ]
+                  ]
+               ],
+               {
+               },
+               {
+                  draggable: true,
+                  fill: true,
+                  fillColor: '#ffff99'
+               }
+            );
+
+
+            myRectangle.remove = function () {
+               myMap.geoObjects.remove(this);
+
+            };
+
+            // myRectangle.events.add('dblclick', function (e) {
+            //    e.originalEvent.target.remove();
+            // });
+
+
+      
+            // Добавление на карту
+            myMap.geoObjects.add(myRectangle); 
+         }
+
+
+
+
+      </script>
+
+
+   </head>
+
+   <body>
+      <!--Контейнер для карты-->
+      <div id="map" style="width: 1000px; height: 600px;"></div>
+      
+      <div id="tools">
+         <input type="button" value="прямоугольник" onclick="rect_init()">
+      </div>
+      
+
+
+   </body>
+
+</html>
