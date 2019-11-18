@@ -1,101 +1,306 @@
 <!DOCTYPE html>
-   <head>
-      <title>Название страницы</title>
-      <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-      <script src="https://api-maps.yandex.ru/2.1/?apikey=<4f266832-6999-4dd9-8e72-85b8fc143c69>&lang=ru_RU" type="text/javascript">
+
+<head>
+   <title>Название страницы</title>
+   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+   <style>
+      .contextButton
+      {
+         border: none;
+      }
+   </style>
+   <script src="https://api-maps.yandex.ru/2.1/?apikey=<4f266832-6999-4dd9-8e72-85b8fc143c69>&lang=ru_RU"
+      type="text/javascript">
       </script>
-      <!--Без этого не работают кастомные балуны-->
-      <script src="https://yandex.st/jquery/2.2.3/jquery.min.js" type="text/javascript"></script>
-      <script type="text/javascript">
-         ymaps.ready(init);
-         var myMap;
+   <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+   <script type="text/javascript">
+      ymaps.ready(init);
+      var myMap;
+      // Массив, содержащий все добавленные на карту источники
+      var sources_array = [];
+      // Массив, содержащий все добавленные на карту тепловые камеры
+      var heatchambers_array = [];
+      // Массив, содержащий все добавленные на карту пути
+      var pipes_array = [];
+      // Массив, содержащий все добавленные на карту конечные узлы
+      var recievers_array = [];
 
 
-
-
-         // Функция построения карты
-         function init() 
-         {
-            myMap = new ymaps.Map('map', {
-               center: [54.9926, 82.9136],
-               zoom: 15,
-               controls: []
-            }, {
-               
-            }),
-               // Создание макета содержимого балуна.
-               // Макет создается с помощью фабрики макетов с помощью текстового шаблона.
-               BalloonContentLayout = ymaps.templateLayoutFactory.createClass(
-                  '<input type="button" value="Удалить!" id="knopka">',
-                  {
-                     build: function () {
-                        BalloonContentLayout.superclass.build.call(this);
-                        $('#knopka').bind('click', this.myButtonClick);
-                     },
-
-                     clear: function () {
-                        $('#knopka').unbind('click', this.myButtonClick);
-                        BalloonContentLayout.superclass.clear.call(this);
-                     },  
-
-                     myButtonClick: function (e) {
-                        //myMap.geoObjects.removeAll();
-                        
-                     }  
-            }
-            );
-
-            // Подключаем кнопку "показать на весь экран"
-            var fullscreenControl = new ymaps.control.FullscreenControl({ options: { float: "right" } });
-            myMap.controls.add(fullscreenControl); // присоединяем к карте
-            // Кнопка "тип карты"
-            var typeSelector = new ymaps.control.TypeSelector({ options: { float: "left" } });
-            myMap.controls.add(typeSelector); // присоединяем к карте
-            // Ползунок масштабирования
-            var zoomControl = new ymaps.control.ZoomControl(
+      // Функция построения карты
+      function init() {
+         myMap = new ymaps.Map("map", {
+               center: [54.9926, 82.9136],  // изначальный центр карты
+               zoom: 15,                    // параметр масштабирования
+               //элементы управления
+               controls: [],
+         });
+         // Подключаем кнопку "показать на весь экран"
+         var fullscreenControl = new ymaps.control.FullscreenControl({ options: { float: "right" } });
+         myMap.controls.add(fullscreenControl); // присоединяем к карте
+         // Кнопка "тип карты"
+         var typeSelector = new ymaps.control.TypeSelector({ options: { float: "left", floatIndex: 200 } });
+         myMap.controls.add(typeSelector); // присоединяем к карте
+         // Ползунок масштабирования
+         var zoomControl = new ymaps.control.ZoomControl(
+            {
+               options:
                {
-                  options:
+                  position:
                   {
-                     position:
-                     {
-                        right: 10,
-                        top: 50
-                     },
-                     size: "large"
-                  }
-               });
-            myMap.controls.add(zoomControl); // присоединяем к карте
-            
-         }
+                     right: 10,
+                     top: 50
+                  },
+                  size: "large"
+               }
+            });
+         // Присоединяем к карте полузок масштабирования
+         myMap.controls.add(zoomControl);
+      }
 
-         function rect_init() 
+      // Инициализация источника
+      function source_init() 
+      {
+         var tmp = new ymaps.Placemark(myMap.getCenter(), 
          {
-            var placemark = new ymaps.Placemark(myMap.getCenter(), {
-               name: 'Метка'
-            }, {
-               balloonContentLayout: BalloonContentLayout,
-               // Запретим замену обычного балуна на балун-панель.
-               // Если не указывать эту опцию, на картах маленького размера откроется балун-панель.
-               balloonPanelMaxMapArea: 0
+            // Баллун, он же контекстное меню
+            balloonContent: 
+               '<button class="add_pipe_by_source contextButton" data-source_id="' + sources_array.length + '">Начать путь</button>' +
+               '<br>' +
+               '<button class="delete_source" data-source_id="' + sources_array.length + '">Удалить!</button>'
+         },
+         {
+            // Попытаемся задать свой макет
+            iconLayout: 'default#image',
+            // Своё изображение иконки метки.
+            iconImageHref: 'factory.png',
+            // Размеры метки.
+            iconImageSize: [70, 70],
+            // Смещение левого верхнего угла иконки относительно
+            // её "ножки" (точки привязки).
+            iconImageOffset: [-28, -40],
+
+
+            // Фигуру возможно передвигать
+            draggable: true,
+            zIndex: 200
+         });
+
+         // Событие: открыть баллун после окончания перетаскивания (как в giszulu)
+         tmp.events.add('dragend', function (e) {
+            e.originalEvent.target.balloon.open();
+         });
+
+         // Добавление информации в массив источников
+         sources_array.push(tmp);
+         // Добавление объекта на карту
+         myMap.geoObjects.add(tmp);
+      }
+
+      // Инициализация тепловой камеры
+      function heatchamber_init()
+      {
+         var left_point = myMap.getCenter();
+         var right_point = myMap.getCenter();
+
+         // Примерные размеры
+         left_point[0] -= 0.00005;
+         left_point[1] -= 0.00005;
+
+         right_point[0] += 0.00005;
+         right_point[1] += 0.00005;
+
+         var heat_chamber = new ymaps.Rectangle([
+            [left_point[0], left_point[1]],
+            [right_point[0], right_point[1]]
+         ],
+         {
+            // Баллун, он же контекстное меню
+            balloonContent: 
+                  '<button class="add_pipe_by_heatchamber" data-heatchamber_id="' + heatchambers_array.length +  '">Начать путь</button>' +
+                  '<br>' +
+                  '<button class="delete_heatchamber" data-heatchamber_id="' + heatchambers_array.length + '">Удалить тепловую камеру</button>'
+         },
+         {
+            zIndex: 200,
+            // Возможность передвигать фигуру
+            draggable: true,
+            // Цвет фона и контура
+            fillColor: '#fcb103',
+            strokeColor: '#fc6203'
+         });
+
+         // Событие: открыть баллун после окончания перетаскивания (как в giszulu)
+         heat_chamber.events.add('dragend', function (e) {
+            e.originalEvent.target.balloon.open();
+         });
+
+         // Добавляем информацию в массив
+         heatchambers_array.push(heat_chamber);
+         // Добавление на карту
+         myMap.geoObjects.add(heat_chamber);
+      }
+
+      // Инициализация конечного узла тепловой системы
+      function reciever_init()
+      {
+         var center_point = myMap.getCenter();
+
+         var reciever = new ymaps.Circle([
+            // Центр окружности
+            center_point,
+            // Радиус в метрах
+            2
+         ],
+         {
+            balloonContent:
+               '<button class="delete_reciever" data-reciever_id="' + recievers_array.length + '">Удалить конечный узел</button>'
+         },
+         {
+            // Можно передвигать фигуру
+            draggable: true,
+            fillColor: '#6632a8',
+            strokeColor: '#5032a8',
+            strokeWidth: 2,
+
+            zIndex: 200
+         });
+
+         // Событие: открыть баллун после окончания перетаскивания (как в giszulu)
+         reciever.events.add('dragend', function (e) {
+            e.originalEvent.target.balloon.open();
+         });
+
+         // Добавляем информацию в массив
+         recievers_array.push(reciever);
+         // Добавление на карту
+         myMap.geoObjects.add(reciever);
+      }
+      
+   </script>
+</head>
+
+<body>
+   <!--Контейнер для карты-->
+   <div id="map" style="width: 1000px; height: 600px;"></div>
+
+   <div id="tools">
+      <input type="button" value="Источник" onclick="source_init()">
+      <input type="button" value="Тепловая камера" onclick="heatchamber_init()">
+      <input type="button" value="Конечный узел" onclick="reciever_init()">
+   </div>
+</body>
+
+<script>
+   // Функция удаления источника с карты
+   $('body').on('click', '.delete_source', function (e) 
+   {
+      myMap.geoObjects.remove(sources_array[$(this).data('source_id')]);
+   });
+
+   // Удаление тепловой камеры с карты
+   $('body').on('click', '.delete_heatchamber', function (e) {
+      myMap.geoObjects.remove(heatchambers_array[$(this).data('heatchamber_id')]);
+   });
+
+   // Функция удаления конечного узла сети с карты
+   $('body').on('click', '.delete_reciever', function (e) {
+      myMap.geoObjects.remove(recievers_array[$(this).data('reciever_id')]);
+   });
+
+   // Инициализация трубы от источника
+   $('body').on('click', '.add_pipe_by_source', function (e) 
+   {
+      var pipe = new ymaps.Polyline([
+         sources_array[$(this).data('source_id')].geometry._coordinates
+      ],
+      {
+         draggable: true
+      },
+      {
+         zIndex: 100,
+         // Толщина линии
+         strokeWidth: 2,
+         // Добавляем собственные функции
+         editorMenuManager: function(items)
+         {
+            // Удаление всего пути
+            items.push({
+               title: "Удалить весь путь",
+               onClick: function() {
+                  myMap.geoObjects.remove(pipe);
+               }
+            });
+            
+            items.push({
+               title: "Закончить путь",
+               onClick: function () {
+                  pipe.editor.stopEditing();
+               }
             });
 
-            myMap.geoObjects.add(placemark);
-         }
-      </script>
+            return items;
+         },
+      }
+      );
 
+      // Автоматическое закрытие балуна после нажатия кнопки
+      sources_array[$(this).data('source_id')].balloon.close();
+      sources_array[$(this).data('source_id')].options._options.draggable = false;
 
-   </head>
+      pipes_array.push(pipe);
 
-   <body>
-      <!--Контейнер для карты-->
-      <div id="map" style="width: 1000px; height: 600px;"></div>
-      
-      <div id="tools">
-         <input type="button" value="прямоугольник" onclick="rect_init()">
-      </div>
-      
+      myMap.geoObjects.add(pipe);
+      pipe.editor.startDrawing();
+   });
 
+   // Инициализация трубы от тепловой камеры
+   $('body').on('click', '.add_pipe_by_heatchamber', function (e) {
+      // Вычисляем центр объекта "прямоугольник"
+      var object = heatchambers_array[$(this).data('heatchamber_id')];
 
-   </body>
+      var x_center = object.geometry._bounds[0][1] + (object.geometry._bounds[1][1] - object.geometry._bounds[0][1])/2;
+      var y_center = object.geometry._bounds[0][0] + (object.geometry._bounds[1][0] - object.geometry._bounds[0][0])/2;
+
+      var pipe = new ymaps.Polyline([
+         [y_center, x_center]
+      ],
+      {
+      },
+      {
+         zIndex: 100,
+         // Толщина линии
+         strokeWidth: 2,
+         // Добавляем собственные функции
+         editorMenuManager: function (items) {
+         // Удаление всего пути
+         items.push({
+            title: "Удалить весь путь",
+            onClick: function () {
+               myMap.geoObjects.remove(pipe);
+            }
+         });
+         items.push({
+            title: "Закончить путь",
+            onClick: function () {
+               pipe.editor.stopEditing();
+            }
+         });
+         return items;
+         },
+      }
+      );
+
+      // Автоматическое закрытие балуна после нажатия кнопки
+      heatchambers_array[$(this).data('heatchamber_id')].balloon.close();
+      // Запрет на передвижение тепловой камеры
+      //heatchambers_array[$(this).data('heatchamber_id')].options._options.draggable = false;
+
+      pipes_array.push(pipe);
+
+      myMap.geoObjects.add(pipe);
+      pipe.editor.startDrawing();
+   });
+
+</script>
 
 </html>
