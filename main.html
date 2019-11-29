@@ -86,15 +86,18 @@
       ymaps.ready(init);
       var myMap;
       // Массив, содержащий все добавленные на карту источники
-      var sources_array = [];
+      var sources_array = new Map();
       // Массив, содержащий все добавленные на карту тепловые камеры
-      var heatchambers_array = [];
+      var heatchambers_array = new Map();
       // Массив, содержащий все добавленные на карту пути
-      var pipes_array = [];
+      var pipes_array = new Map();
       // Массив, содержащий все добавленные на карту конечные узлы
-      var recievers_array = [];
+      var recievers_array = new Map();
       // Массив, содержащий все добавленные на карту ответвления
-      var branches_array = [];
+      var branches_array = new Map();
+      // Глобальная переменная для идентификации каждого элемента сети
+      var id = 0;
+
 
       // Функция построения карты
       function init() {
@@ -134,9 +137,9 @@
          {
             // Баллун, он же контекстное меню
             balloonContent: 
-               '<button class="add_pipe_by_source contextButton" id="buttonAddPipeBySource" data-source_id="' + sources_array.length + '">Начать путь</button>' +
+               '<button class="add_pipe_by_source contextButton" id="buttonAddPipeBySource" data-source_id="' + /*sources_array.length*/ id + '">Начать путь</button>' +
                '<br>' +
-               '<button class="delete_source contextButton" id="deleteSource" data-source_id="' + sources_array.length + '">Удалить источник</button>'
+               '<button class="delete_source contextButton" id="deleteSource" data-source_id="' + /*sources_array.length*/ id + '">Удалить источник</button>'
          },
          {
             // Попытаемся задать свой макет
@@ -161,7 +164,7 @@
          });
 
          // Добавление информации в массив источников
-         sources_array.push(tmp);
+         sources_array.set(id++, tmp);
          // Добавление объекта на карту
          myMap.geoObjects.add(tmp);
       }
@@ -175,7 +178,7 @@
          // Примерные размеры
          left_point[0] -= 0.000025;
          left_point[1] -= 0.00005;
-
+         
          right_point[0] += 0.000025;
          right_point[1] += 0.00005;
 
@@ -186,9 +189,9 @@
          {
             // Баллун, он же контекстное меню
             balloonContent: 
-                  '<button class="add_pipe_by_heatchamber contextButton" id="buttonAddPipeByHeatchamber" data-heatchamber_id="' + heatchambers_array.length +  '">Начать путь</button>' +
+                  '<button class="add_pipe_by_heatchamber contextButton" id="buttonAddPipeByHeatchamber" data-heatchamber_id="' + id +  '">Начать путь</button>' +
                   '<br>' +
-                  '<button class="delete_heatchamber contextButton" id="deleteHeatchamber" data-heatchamber_id="' + heatchambers_array.length + '">Удалить тепловую камеру</button>'
+                  '<button class="delete_heatchamber contextButton" id="deleteHeatchamber" data-heatchamber_id="' + id + '">Удалить тепловую камеру</button>'
          },
          {
             zIndex: 200,
@@ -205,7 +208,7 @@
          });
 
          // Добавляем информацию в массив
-         heatchambers_array.push(heat_chamber);
+         heatchambers_array.set(id++, heat_chamber);
          // Добавление на карту
          myMap.geoObjects.add(heat_chamber);
       }
@@ -223,7 +226,7 @@
          ],
          {
             balloonContent:
-               '<button class="delete_reciever contextButton" id="deleteReciever" data-reciever_id="' + recievers_array.length + '">Удалить конечный узел</button>'
+               '<button class="delete_reciever contextButton" id="deleteReciever" data-reciever_id="' + id + '">Удалить конечный узел</button>'
          },
          {
             // Можно передвигать фигуру
@@ -241,7 +244,7 @@
          });
 
          // Добавляем информацию в массив
-         recievers_array.push(reciever);
+         recievers_array.set(id++, reciever);
          // Добавление на карту
          myMap.geoObjects.add(reciever);
       }
@@ -265,6 +268,8 @@
                   title: "Удалить весь путь",
                   onClick: function () {
                      myMap.geoObjects.remove(pipe);
+                     // Удаление из глобальной коллекции
+                     pipes_array.delete(pipe.key);
                   }
                });
                items.push({
@@ -308,7 +313,8 @@
          );
 
          // Добавляем в глобальный массив объектов
-         pipes_array.push(pipe);
+         pipe["key"] = id;
+         pipes_array.set(id++, pipe);
          // Добавление на карту
          myMap.geoObjects.add(pipe);
          // Старт режима редактирования линии
@@ -335,7 +341,7 @@
          });
 
          // Добавляем информацию в массив
-         branches_array.push(branch);
+         branches_array.set(id++, branch);
          // Добавление на карту
          myMap.geoObjects.add(branch);
       }
@@ -357,26 +363,28 @@
    $('body').on('click', '.delete_source', function (e) 
    {
       // Удаление с карты
-      myMap.geoObjects.remove(sources_array[$(this).data('source_id')]);
+      myMap.geoObjects.remove(sources_array.get($(this).data('source_id')));
       // Удаление из глобального массива объектов
-      sources_array.splice($(this).data('source_id'), 1);
+      sources_array.delete($(this).data('source_id'));
    });
 
    // Удаление тепловой камеры с карты
    $('body').on('click', '.delete_heatchamber', function (e) {
-      myMap.geoObjects.remove(heatchambers_array[$(this).data('heatchamber_id')]);
+      myMap.geoObjects.remove(heatchambers_array.get($(this).data('heatchamber_id')));
+      heatchambers_array.delete($(this).data('heatchamber_id'));
    });
 
    // Функция удаления конечного узла сети с карты
    $('body').on('click', '.delete_reciever', function (e) {
-      myMap.geoObjects.remove(recievers_array[$(this).data('reciever_id')]);
+      myMap.geoObjects.remove(recievers_array.get($(this).data('reciever_id')));
+      recievers_array.delete($(this).data('reciever_id'));
    });
 
    // Инициализация трубы от источника
    $('body').on('click', '.add_pipe_by_source', function (e) 
    {
       var pipe = new ymaps.Polyline([
-         sources_array[$(this).data('source_id')].geometry._coordinates
+         sources_array.get($(this).data('source_id')).geometry._coordinates
       ],
       {
          draggable: true
@@ -393,6 +401,8 @@
                title: "Удалить весь путь",
                onClick: function() {
                   myMap.geoObjects.remove(pipe);
+                  // Удаление из глобальной коллекции
+                  pipes_array.delete(pipe.key);
                }
             });
             items.push({
@@ -416,6 +426,7 @@
                   myMap.setCenter(event.geometry._coordinates);
                   // Инициализация тепловой камеры
                   heatchamber_init();
+                  pipe_init(event.geometry._coordinates);
                   event._parent.editor.stopEditing();
                }
             });
@@ -435,11 +446,11 @@
       );
 
       // Автоматическое закрытие балуна после нажатия кнопки
-      sources_array[$(this).data('source_id')].balloon.close();
-      sources_array[$(this).data('source_id')].options._options.draggable = false;
+      sources_array.get($(this).data('source_id')).balloon.close();
+      sources_array.get($(this).data('source_id')).options._options.draggable = false;
 
-      pipes_array.push(pipe);
-
+      pipe["key"] = id;
+      pipes_array.set(id++, pipe);
       myMap.geoObjects.add(pipe);
       pipe.editor.startDrawing();
    });
@@ -447,7 +458,7 @@
    // Инициализация трубы от тепловой камеры
    $('body').on('click', '.add_pipe_by_heatchamber', function (e) {
       // Вычисляем центр объекта "прямоугольник"
-      var object = heatchambers_array[$(this).data('heatchamber_id')];
+      var object = heatchambers_array.get($(this).data('heatchamber_id'));
 
       var x_center = object.geometry._bounds[0][1] + (object.geometry._bounds[1][1] - object.geometry._bounds[0][1])/2;
       var y_center = object.geometry._bounds[0][0] + (object.geometry._bounds[1][0] - object.geometry._bounds[0][0])/2;
@@ -468,6 +479,8 @@
                title: "Удалить весь путь",
                onClick: function () {
                   myMap.geoObjects.remove(pipe);
+                  // Удаление из глобальной коллекции
+                  pipes_array.delete(pipe.key);
                }
             });
             items.push({
@@ -511,12 +524,12 @@
       );
 
       // Автоматическое закрытие балуна после нажатия кнопки
-      heatchambers_array[$(this).data('heatchamber_id')].balloon.close();
+      heatchambers_array.get($(this).data('heatchamber_id')).balloon.close();
       // Запрет на передвижение тепловой камеры
       //heatchambers_array[$(this).data('heatchamber_id')].options._options.draggable = false;
 
-      pipes_array.push(pipe);
-
+      pipe["key"] = id;
+      pipes_array.set(id++, pipe);
       myMap.geoObjects.add(pipe);
       pipe.editor.startDrawing();
    });
