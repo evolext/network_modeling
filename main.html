@@ -1,89 +1,16 @@
 <!DOCTYPE html>
-
 <head>
    <title>Название страницы</title>
    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-   <style>
-      #map
-      {
-         margin: 0;
-         padding: 10px;
-         background-color: rgba(184, 181, 181, 0.993);
-         float: left;
-         width: 1000px;
-      }
-      /* Стилизация баллунов объектов */
-      .contextButton
-      {
-         text-align: left;
-         padding-left: 25px;
-         padding-top: 4px;
-         padding-bottom: 4px;
-         width: 100%;
-         border: none;
-         cursor: pointer;
-         background-color: white;
-         background-repeat: no-repeat;
-      }
-      #buttonAddPipeBySource
-      {
-         background-size: 23px;
-         background-image: url('icons/pipe.png');
-      }
-      #buttonAddPipeByHeatchamber
-      {
-         background-size: 23px;
-         background-image: url('icons/pipe.png');
-      }
-      #deleteSource, #deleteHeatchamber, #deleteReciever
-      {
-         background-size: 23px;
-         background-image: url('icons/cross.png');
-      }
-      /* Стилизация панели инструментов */
-      #toolsPanel
-      {
-         background-color: rgba(184, 181, 181, 0.993);
-         height: 620px;
-      }
-      #toolsPanel input
-      {
-         font-family: Verdana, Geneva, Tahoma, sans-serif;
-         margin-top: 10px;
-         width: 200px;
-         height: 30px;
-         padding: 0;
-         font: inherit;
-         color: inherit;
-         background-color: transparent;
-
-         background-size: 28px;
-         background-repeat: no-repeat;
-         background-color: rgb(231, 226, 226);
-         margin-right: 200px;
-         border: 1px solid black;
-         display: inline-block;
-         cursor: pointer;
-      }
-      #sourceTool
-      {
-         background-image: url('icons/factory.png');
-      }
-      #heatchamberTool
-      {
-         background-image: url('icons/rectangle.png');
-      }
-      #recieverTool
-      {
-         background-image: url('icons/circle.png');
-      }
-   </style>
+   <link rel="stylesheet" type="text/css" href="style.css">
+   <!-- Подключение API яндекс карт -->
    <script src="https://api-maps.yandex.ru/2.1/?apikey=<4f266832-6999-4dd9-8e72-85b8fc143c69>&lang=ru_RU"
       type="text/javascript">
       </script>
    <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
    <script type="text/javascript">
       ymaps.ready(init);
+      // Переменная, являющася контейнером для карты
       var myMap;
       // Массив, содержащий все добавленные на карту источники
       var sources_array = new Map();
@@ -97,7 +24,8 @@
       var branches_array = new Map();
       // Глобальная переменная для идентификации каждого элемента сети
       var id = 0;
-
+      // Массив, содержащий всю информацию о геообъектах
+      var objects_data = new Map();
 
       // Функция построения карты
       function init() {
@@ -137,15 +65,17 @@
          {
             // Баллун, он же контекстное меню
             balloonContent: 
-               '<button class="add_pipe_by_source contextButton" id="buttonAddPipeBySource" data-source_id="' + /*sources_array.length*/ id + '">Начать путь</button>' +
+               '<button class="add_pipe_by_source contextButton" id="buttonAddPipeBySource" data-source_id="' + id + '">Начать путь</button>' + 
                '<br>' +
-               '<button class="delete_source contextButton" id="deleteSource" data-source_id="' + /*sources_array.length*/ id + '">Удалить источник</button>'
+               '<button class="show_source_info contextButton info" data-source_id="' + id + '">Информация</button>' +
+               '<br>' +
+               '<button class="delete_source contextButton" id="deleteSource" data-source_id="' + id + '">Удалить источник</button>'
          },
          {
-            // Попытаемся задать свой макет
+            // Свой макет изображения объекта
             iconLayout: 'default#image',
             // Своё изображение иконки метки.
-            iconImageHref: 'icons/factory.png',
+            iconImageHref: '/icons/factory.png',
             // Размеры метки.
             iconImageSize: [40, 40],
             // Смещение левого верхнего угла иконки относительно
@@ -163,6 +93,14 @@
             e.originalEvent.target.balloon.open();
          });
 
+         // Структура данных для хранения информации об источнике
+         var data = [];
+         data.push({ value: "0"});
+         data.push({ value: "0" });
+         data.push({ value: "0" });
+         // Добавление информации в глобальный массив
+         objects_data.set(id, data);
+
          // Добавление информации в массив источников
          sources_array.set(id++, tmp);
          // Добавление объекта на карту
@@ -170,26 +108,15 @@
       }
 
       // Инициализация тепловой камеры
-      function heatchamber_init()
+      function heatchamber_init(coordinates)
       {
-         var left_point = myMap.getCenter();
-         var right_point = myMap.getCenter();
-
-         // Примерные размеры
-         left_point[0] -= 0.000025;
-         left_point[1] -= 0.00005;
-         
-         right_point[0] += 0.000025;
-         right_point[1] += 0.00005;
-
-         var heat_chamber = new ymaps.Rectangle([
-            [left_point[0], left_point[1]],
-            [right_point[0], right_point[1]]
-         ],
+         var heat_chamber = new ymaps.Placemark(coordinates,
          {
             // Баллун, он же контекстное меню
             balloonContent: 
                   '<button class="add_pipe_by_heatchamber contextButton" id="buttonAddPipeByHeatchamber" data-heatchamber_id="' + id +  '">Начать путь</button>' +
+                  '<br>' +
+                  '<button class="show_heatchamber_info contextButton info" data-heatchamber_id="' + id + '">Информация</button>' +
                   '<br>' +
                   '<button class="delete_heatchamber contextButton" id="deleteHeatchamber" data-heatchamber_id="' + id + '">Удалить тепловую камеру</button>'
          },
@@ -197,15 +124,29 @@
             zIndex: 200,
             // Возможность передвигать фигуру
             draggable: true,
-            // Цвет фона и контура
-            fillColor: '#fcb103',
-            strokeColor: '#fc6203'
+            // Настройка собственного изображения
+            iconLayout: 'default#image',
+            // Своё изображение иконки метки.
+            iconImageHref: '/icons/rectangle.png',
+            // Размеры метки.
+            iconImageSize: [25, 25],
+            // Смещение левого верхнего угла иконки относительно
+            // её "ножки" (точки привязки).
+            iconImageOffset: [-13,-12]
          });
 
          // Событие: открыть баллун после окончания перетаскивания (как в giszulu)
          heat_chamber.events.add('dragend', function (e) {
             e.originalEvent.target.balloon.open();
          });
+
+         // Структура данных для хранения информации о тепловой камере
+         var data = [];
+         data.push({ value: "0" });
+         data.push({ value: "0" });
+         data.push({ value: "0" });
+         // Добавление информации в глобальный массив
+         objects_data.set(id, data);
 
          // Добавляем информацию в массив
          heatchambers_array.set(id++, heat_chamber);
@@ -214,18 +155,18 @@
       }
 
       // Инициализация конечного узла тепловой системы
-      function reciever_init()
+      function reciever_init(coordinates)
       {
-         var center_point = myMap.getCenter();
-
          var reciever = new ymaps.Circle([
             // Центр окружности
-            center_point,
+            coordinates,
             // Радиус в метрах
-            2
+            1
          ],
          {
             balloonContent:
+               '<button class="show_reciever_info contextButton info" data-reciever_id="' + id + '">Информация</button>' +
+               '<br>' +
                '<button class="delete_reciever contextButton" id="deleteReciever" data-reciever_id="' + id + '">Удалить конечный узел</button>'
          },
          {
@@ -243,6 +184,14 @@
             e.originalEvent.target.balloon.open();
          });
 
+         // Структура данных для хранения информации о конечном узле
+         var data = [];
+         data.push({ value: "0" });
+         data.push({ value: "0" });
+         data.push({ value: "0" });
+         // Добавление информации в глобальный массив
+         objects_data.set(id, data);
+
          // Добавляем информацию в массив
          recievers_array.set(id++, reciever);
          // Добавление на карту
@@ -256,11 +205,15 @@
             coordinates
          ],
          {
+            balloonContent:
+               '<button class="show_pipe_info contextButton" data-pipe_id="' + id + '">Информация</button>' +
+               '<br>' +
+               '<button class="delete_pipe contextButton" id="deletePipe" data-pipe_id="' + id + '">Удалить конечный узел</button>'
          },
          {
             zIndex: 100,
             // Толщина линии
-            strokeWidth: 2,
+            strokeWidth: 4,
             // Добавляем собственные функции
             editorMenuManager: function (items, event) {
                // Удаление всего пути
@@ -283,7 +236,7 @@
                   onClick: function () {
                      branch_init(event.geometry._coordinates);
                      pipe_init(event.geometry._coordinates);
-                     event._parent.editor.stopEditing();
+                     //event._parent.editor.stopEditing();
                   }
                });
                items.push({
@@ -292,7 +245,7 @@
                      // Меняем центр карты
                      myMap.setCenter(event.geometry._coordinates);
                      // Инициализация тепловой камеры
-                     heatchamber_init();
+                     heatchamber_init(event.geometry._coordinates);
                      pipe_init(event.geometry._coordinates);
                      event._parent.editor.stopEditing();
                   }
@@ -303,7 +256,7 @@
                      // Меняем центр карты
                      myMap.setCenter(event.geometry._coordinates);
                      // Инициализация тепловой камеры
-                     reciever_init();
+                     reciever_init(event.geometry._coordinates);
                      event._parent.editor.stopEditing();
                   }
                });
@@ -311,6 +264,12 @@
             }
          }
          );
+
+         // Структура данных для хранения информации
+         var data = [];
+         data.push({ value: "0" });
+         // Добавление информации в глобальный массив
+         objects_data.set(id, data);
 
          // Добавляем в глобальный массив объектов
          pipe["key"] = id;
@@ -329,9 +288,14 @@
             // Центр окружности
             coordinates,
             // Радиус в метрах
-            1.5
+            1
          ],
          {
+            balloonContent:
+               '<button class="add_pipe_by_branch contextButton" id="buttonAddPipeByBranch" data-branch_id="' + id + '">Начать путь</button>' +
+               '<button class="show_branch_info contextButton info" data-branch_id="' + id + '">Информация</button>' +
+               '<br>' +
+               '<button class="delete_branch contextButton" id="deleteBranch" data-branch_id="' + id + '">Удалить конечный узел</button>'
          },
          {
             fillColor: '#3d3c3a',
@@ -340,200 +304,32 @@
             zIndex: 200
          });
 
+         // Структура данных для хранения информации об ответвлении
+         var data = [];
+         data.push({ value: "0" });
+         data.push({ value: "0" });
+         data.push({ value: "0" });
+         // Добавление информации в глобальный массив
+         objects_data.set(id, data);
+
          // Добавляем информацию в массив
          branches_array.set(id++, branch);
          // Добавление на карту
          myMap.geoObjects.add(branch);
       }
+   
    </script>
 </head>
 
 <body>
    <!--Контейнер для карты-->
    <div id="map" style="width: 1000px; height: 600px;"></div>
+   <!-- Панель инструменотов -->
    <div id="toolsPanel">
-      <input type="button" value="Источник" id="sourceTool" onclick="source_init()">
-      <input type="button" value="Тепловая камера" id="heatchamberTool" onclick="heatchamber_init()">
-      <input type="button" value="Конечный узел" id="recieverTool" onclick="reciever_init()">
+      <input type="button" value="Построить сеть" id="sourceTool" onclick="source_init()">
+      <input type="button" value="Найти расход на участках" id="sendValue">
    </div>
+   <!-- Подключение внешнего файла с функциями обработки геообъектов -->
+   <script src="object_handlers.js"></script>
 </body>
-
-<script>
-   // Функция удаления источника с карты
-   $('body').on('click', '.delete_source', function (e) 
-   {
-      // Удаление с карты
-      myMap.geoObjects.remove(sources_array.get($(this).data('source_id')));
-      // Удаление из глобального массива объектов
-      sources_array.delete($(this).data('source_id'));
-   });
-
-   // Удаление тепловой камеры с карты
-   $('body').on('click', '.delete_heatchamber', function (e) {
-      myMap.geoObjects.remove(heatchambers_array.get($(this).data('heatchamber_id')));
-      heatchambers_array.delete($(this).data('heatchamber_id'));
-   });
-
-   // Функция удаления конечного узла сети с карты
-   $('body').on('click', '.delete_reciever', function (e) {
-      myMap.geoObjects.remove(recievers_array.get($(this).data('reciever_id')));
-      recievers_array.delete($(this).data('reciever_id'));
-   });
-
-   // Инициализация трубы от источника
-   $('body').on('click', '.add_pipe_by_source', function (e) 
-   {
-      var pipe = new ymaps.Polyline([
-         sources_array.get($(this).data('source_id')).geometry._coordinates
-      ],
-      {
-         draggable: true
-      },
-      {
-         zIndex: 100,
-         // Толщина линии
-         strokeWidth: 2,
-         // Добавляем собственные функции
-         editorMenuManager: function(items, event)
-         {
-            // Удаление всего пути
-            items.push({
-               title: "Удалить весь путь",
-               onClick: function() {
-                  myMap.geoObjects.remove(pipe);
-                  // Удаление из глобальной коллекции
-                  pipes_array.delete(pipe.key);
-               }
-            });
-            items.push({
-               title: "Закончить путь",
-               onClick: function () {
-                  pipe.editor.stopEditing();
-               }
-            });
-            items.push({
-               title: "Ответвление",
-               onClick: function () {
-                  branch_init(event.geometry._coordinates);
-                  pipe_init(event.geometry._coordinates);
-                  event._parent.editor.stopEditing();
-               }
-            });
-            items.push({
-               title: "Установить тепловую камеру",
-               onClick: function () {
-                  // Меняем центр карты
-                  myMap.setCenter(event.geometry._coordinates);
-                  // Инициализация тепловой камеры
-                  heatchamber_init();
-                  pipe_init(event.geometry._coordinates);
-                  event._parent.editor.stopEditing();
-               }
-            });
-            items.push({
-               title: "Установить конечный узел",
-               onClick: function () {
-                  // Меняем центр карты
-                  myMap.setCenter(event.geometry._coordinates);
-                  // Инициализация тепловой камеры
-                  reciever_init();
-                  event._parent.editor.stopEditing();
-               }
-            });
-            return items;
-         }
-      }
-      );
-
-      // Автоматическое закрытие балуна после нажатия кнопки
-      sources_array.get($(this).data('source_id')).balloon.close();
-      sources_array.get($(this).data('source_id')).options._options.draggable = false;
-
-      pipe["key"] = id;
-      pipes_array.set(id++, pipe);
-      myMap.geoObjects.add(pipe);
-      pipe.editor.startDrawing();
-   });
-
-   // Инициализация трубы от тепловой камеры
-   $('body').on('click', '.add_pipe_by_heatchamber', function (e) {
-      // Вычисляем центр объекта "прямоугольник"
-      var object = heatchambers_array.get($(this).data('heatchamber_id'));
-
-      var x_center = object.geometry._bounds[0][1] + (object.geometry._bounds[1][1] - object.geometry._bounds[0][1])/2;
-      var y_center = object.geometry._bounds[0][0] + (object.geometry._bounds[1][0] - object.geometry._bounds[0][0])/2;
-
-      var pipe = new ymaps.Polyline([
-         [y_center, x_center]
-      ],
-      {
-      },
-      {
-         zIndex: 100,
-         // Толщина линии
-         strokeWidth: 2,
-         // Добавляем собственные функции
-         editorMenuManager: function (items, event) {
-            // Удаление всего пути
-            items.push({
-               title: "Удалить весь путь",
-               onClick: function () {
-                  myMap.geoObjects.remove(pipe);
-                  // Удаление из глобальной коллекции
-                  pipes_array.delete(pipe.key);
-               }
-            });
-            items.push({
-               title: "Закончить путь",
-               onClick: function () {
-                  pipe.editor.stopEditing();
-               }
-            });
-            items.push({
-               title: "Ответвление",
-               onClick: function () {
-                  branch_init(event.geometry._coordinates);
-                  pipe_init(event.geometry._coordinates);
-                  event._parent.editor.stopEditing();
-               }
-            });
-            items.push({
-               title: "Установить тепловую камеру",
-               onClick: function () {
-                  // Меняем центр карты
-                  myMap.setCenter(event.geometry._coordinates);
-                  // Инициализация тепловой камеры
-                  heatchamber_init();
-                  pipe_init(event.geometry._coordinates);
-                  event._parent.editor.stopEditing();
-               }
-            });
-            items.push({
-               title: "Установить конечный узел",
-               onClick: function () {
-                  // Меняем центр карты
-                  myMap.setCenter(event.geometry._coordinates);
-                  // Инициализация тепловой камеры
-                  reciever_init();
-                  event._parent.editor.stopEditing();
-               }
-            });
-            return items;
-         }
-      }
-      );
-
-      // Автоматическое закрытие балуна после нажатия кнопки
-      heatchambers_array.get($(this).data('heatchamber_id')).balloon.close();
-      // Запрет на передвижение тепловой камеры
-      //heatchambers_array[$(this).data('heatchamber_id')].options._options.draggable = false;
-
-      pipe["key"] = id;
-      pipes_array.set(id++, pipe);
-      myMap.geoObjects.add(pipe);
-      pipe.editor.startDrawing();
-   });
-
-</script>
-
 </html>
