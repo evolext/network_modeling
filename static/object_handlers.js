@@ -526,3 +526,24 @@ function parsing_array(array_type) {
    }
    return array;
 }
+
+// Отобразить названия у источников
+function showHideObjectNames()
+{
+   // Меняем режим на карте
+   MODES.showObjectNames = !MODES.showObjectNames;
+
+   // Перебор всех источников на карте
+   for (let object of sources_array.values())
+   {
+      // Меняем содержимое надписи с названием объекта на пустое
+      // Или пустое на название объекта, зависит от режима
+      MODES.showObjectNames ? object.properties._data.iconContent = object.name : object.properties._data.iconContent = '';
+   }
+
+   // Меняем сообщение на кнопке на панели
+   MODES.showObjectNames ? $('#showHideObjectNames').val('Скрыть названия объектов') : $('#showHideObjectNames').val('Отобразить названия объектов');
+
+   // "Обновление" карты, чтобы изменения отобразились
+   myMap.setCenter(myMap.getCenter());
+}

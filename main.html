@@ -4,9 +4,7 @@
    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
    <link rel="stylesheet" type="text/css" href="style.css">
    <!-- Подключение API яндекс карт -->
-   <script src="https://api-maps.yandex.ru/2.1/?apikey=<4f266832-6999-4dd9-8e72-85b8fc143c69>&lang=ru_RU"
-      type="text/javascript">
-      </script>
+   <script src="https://api-maps.yandex.ru/2.1/?apikey=<4f266832-6999-4dd9-8e72-85b8fc143c69>&lang=ru_RU" type="text/javascript"></script>
    <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
    <script type="text/javascript">
       ymaps.ready(init);
@@ -26,6 +24,13 @@
       var id = 0;
       // Массив, содержащий всю информацию о геообъектах
       var objects_data = new Map();
+
+      // Переменная, отвечающая за текущий режим
+      // 1-й: показывать\скрывать названия геообъектов
+      var MODES = {
+         showObjectNames: false // По умолчанию названия геообъектов не отображаются
+      };
+
 
       // Функция построения карты
       function init() {
@@ -61,27 +66,44 @@
       // Инициализация источника
       function source_init() 
       {
+         let iconContent = '';
+         // Если режим отображения имен геообъектов включен, то меняем содержимое на название
+         if (MODES.showObjectNames)
+            iconContent = '<span class="object_names">Источник №1</span>';
+
          var tmp = new ymaps.Placemark(myMap.getCenter(), 
          {
             // Баллун, он же контекстное меню
-            balloonContent: 
-               '<button class="add_pipe_by_source contextButton" id="buttonAddPipeBySource" data-source_id="' + id + '">Начать путь</button>' + 
-               '<br>' +
-               '<button class="show_source_info contextButton info" data-source_id="' + id + '">Информация</button>' +
-               '<br>' +
-               '<button class="delete_source contextButton" id="deleteSource" data-source_id="' + id + '">Удалить источник</button>'
+            balloonContent:   '<button class="add_pipe_by_source contextButton" id="buttonAddPipeBySource" data-source_id="' + id + '">Начать путь</button>' + 
+                              '<br>' +
+                              '<button class="show_source_info contextButton info" data-source_id="' + id + '">Информация</button>' +
+                              '<br>' +
+                              '<button class="delete_source contextButton" id="deleteSource" data-source_id="' + id + '">Удалить источник</button>',
+            // Подпись к геообъекту с его названием (изначально название не отображается)
+            iconContent: iconContent
          },
          {
-            // Свой макет изображения объекта
-            iconLayout: 'default#image',
+            // Свой макет изображения объекта, 
+            // также возможно добавить подпись к объекту
+            iconLayout: 'default#imageWithContent',
             // Своё изображение иконки метки.
             iconImageHref: '/icons/factory.png',
-            // Размеры метки.
+
+            // Размеры метки
             iconImageSize: [40, 40],
             // Смещение левого верхнего угла иконки относительно
-            // её "ножки" (точки привязки).
+            // её "ножки" (точки привязки)
             iconImageOffset: [-20, -34],
 
+            // Смещениие надписи с названием геообъеекта
+            iconContentOffset: [5, -25],
+            // Размер надписи с названием геообъеекта
+            iconContentSize: [100, 10],
+
+            // Смещение балуна относительно первоначальной точки привязки
+            balloonOffset: [6, -30],
+            // Не скрывать сам объект при открытии балуна
+            hideIconOnBalloonOpen: false,
 
             // Фигуру возможно передвигать
             draggable: true,
@@ -92,6 +114,10 @@
          tmp.events.add('dragend', function (e) {
             e.originalEvent.target.balloon.open();
          });
+
+         // Сохраняем подпись с названием объекта,
+         // понадобится при нажатии на кнопку отобажения подписей объектов
+         tmp.name = '<span class="object_names">Источник №1</span>';
 
          // Структура данных для хранения информации об источнике
          var data = [];
@@ -323,11 +349,20 @@
 
 <body>
    <!--Контейнер для карты-->
-   <div id="map" style="width: 1000px; height: 600px;"></div>
+   <div id="map" style="width: 60%; height: 600px;"></div>
    <!-- Панель инструменотов -->
    <div id="toolsPanel">
-      <input type="button" value="Построить сеть" id="sourceTool" onclick="source_init()">
-      <input type="button" value="Найти расход на участках" id="sendValue">
+      <table>
+         <tr>
+            <td><input type="button" value="Построить сеть" id="sourceTool" onclick="source_init()"></td>
+         </tr>
+         <tr>
+            <td><input type="button" value="Найти расход на участках" id="sendValue"></td>
+         </tr>
+         <tr>
+            <td><input type="button" value="Отобразить названия объектов" id="showHideObjectNames" onclick="showHideObjectNames()"></td>
+         </tr>
+      </table>
    </div>
    <!-- Подключение внешнего файла с функциями обработки геообъектов -->
    <script src="object_handlers.js"></script>
