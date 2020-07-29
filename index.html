@@ -25,6 +25,7 @@
     var id = 0;
     var geoObjects = [];
     var pipes = new Map();
+    var objectsInfo = new Map();
     var polylineEditor;
 
     // Идентификаторр редактируемого пайпа
@@ -71,6 +72,26 @@
             pipes.get(objId).removeFrom(map);
             pipes.delete(objId);
         }
+        objectsInfo.delete(objId);
+    });
+
+    // Показ информации по объекту
+    $('#map').on('click', '.getInfo', function(e) {
+        map.closePopup();
+
+        // Запрашиваемая инфомрация по объекту
+        let obj_info = objectsInfo.get(Number(e.target.dataset.id));
+
+        // Настройка вида открывающегося окна
+        let params = 'left=500,top=100,width=330,height=300';
+        let new_window = window.open("./info.html", "window", params);
+
+        // Заполнение таблицы с данными
+        new_window.addEventListener('load', function() {
+            let rows = new_window.document.querySelector('table').rows;
+            rows[1].cells[1].querySelector('input').value = obj_info.consumption.toString(); 
+        });
+
     });
 
     map.on('editable:vertex:click', function (e) {

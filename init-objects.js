@@ -46,9 +46,12 @@ function initObject(type, coordinates = undefined){
     });
 
     geoObjects.push({
-        id: id++,
+        id: id,
         type: type,
         value: obj
+    });
+    objectsInfo.set(id++, {
+        consumption: 0
     });
 }
 
@@ -107,6 +110,9 @@ function initPipe(firstPoint) {
     }).setContent(ctxMenu);
     pipe.addTo(map);
     pipes.set(id, pipe);
+    objectsInfo.set(id, {
+        consumption: 0
+    });
 
     // Запуск редактора
     polylineEditor = pipe.enableEdit();
