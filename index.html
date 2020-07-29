@@ -26,10 +26,13 @@
     var geoObjects = [];
     var pipes = new Map();
     var polylineEditor;
+
     // Идентификаторр редактируемого пайпа
     var edId = null;
     // Контекстное меню редактируемого пайпа
     var edPopup = null;
+    // Контекстное меню пайпа, доступное до редактирования
+    var pipePopup = null;
 
     // Создание объекта карты
     var map = L.map('map', {
@@ -49,7 +52,7 @@
 
 
     $('#map').on('click', '.startPipe', function(e) {
-        let objId = $(this).data('id');
+        let objId = Number(e.target.dataset.id);
         let index = geoObjects.findIndex((obj) => obj.id == objId);
         initPipe(geoObjects[index].value.getLatLng());
         // Закрытие popup объекта
@@ -58,10 +61,16 @@
 
     // Удаление объекта с карты
     $('#map').on('click', '.removeObject', function(e) {
-        let objId = $(this).data('id');
+        let objId = Number(e.target.dataset.id);
         let index = geoObjects.findIndex((obj) => obj.id == objId);
-        geoObjects[index].value.removeFrom(map);
-        geoObjects.splice(index, 1);
+        if (index >= 0) {
+            geoObjects[index].value.removeFrom(map);
+            geoObjects.splice(index, 1);
+        }
+        else {
+            pipes.get(objId).removeFrom(map);
+            pipes.delete(objId);
+        }
     });
 
     map.on('editable:vertex:click', function (e) {

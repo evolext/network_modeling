@@ -29,9 +29,11 @@ $('#map').on('click', '.endPipe', function() {
     map.closePopup();
     let pipe = pipes.get(edId);
     pipe.disableEdit();
+    pipe.bindPopup(pipePopup);
 
     polylineEditor = null;
     edId = null;
+    pipePopup = null;
 });
 
 // Удаление последней вершины пути
@@ -56,4 +58,25 @@ $('#map').on('click', '.removePipe', function() {
 
     polylineEditor = null;
     edId = null;
+    pipePopup = null;
+});
+
+//-------------------------------------------------------------------------------------------------------------------
+
+// Возобновление редактирования пути
+$('#map').on('click', '.editPipe', function(e) {
+    let new_pipe = pipes.get(Number(e.target.dataset.id));
+    new_pipe.closePopup();
+
+    // Завершаем редактирование предыдущего (если какой-то до этого редактировался)
+    if (polylineEditor) {
+        let old_pipe = pipes.get(edId);
+        old_pipe.toggleEdit();
+        old_pipe.bindPopup(pipePopup);
+    }
+
+    polylineEditor = new_pipe.enableEdit();
+    edId = Number(e.target.dataset.id);
+    pipePopup = new_pipe.getPopup();
+    new_pipe.unbindPopup();
 });
