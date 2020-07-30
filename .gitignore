@@ -1,2 +1,4 @@
-/icons
-Leaflet.Editable.js
+/static/icons
+/static/Leaflet.Editable.js
+package-lock.json
+/node_modules

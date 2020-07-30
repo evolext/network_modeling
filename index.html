@@ -19,6 +19,7 @@
     <div id="map"></div>
     <div id="toolsPanel">
         <input type="button" value="Построить сеть" onclick="initObject('source')"/>
+        <input type="button" value="Отправить данные" onclick="sendData()">
     </div>
 </body>
 <script>
@@ -88,8 +89,13 @@
 
         // Заполнение таблицы с данными
         new_window.addEventListener('load', function() {
-            let rows = new_window.document.querySelector('table').rows;
-            rows[1].cells[1].querySelector('input').value = obj_info.consumption.toString(); 
+            let fields = new_window.document.querySelectorAll('input');
+            fields[0].value = obj_info["consumption"].toString();
+        });
+
+        // Обновляем данные после закрытия
+        new_window.addEventListener('beforeunload', function() {
+            obj_info["consumption"] = Number(new_window.document.querySelectorAll('input')[0].value);
         });
 
     });
@@ -123,6 +129,37 @@
     //     pipe_editor.appendShape([e.vertex.latlng, e.vertex.latlngs[0]]);
     //     global[0].toggleEdit();
     // });
+
+
+    function sendData() {
+        fetch('/compute', {
+            method: 'POST',
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(parsingData())
+        }).then(function(response) {
+
+
+        }).catch(function(err) {
+
+        });
+    }
+
+    // Подготовка данных об объектах к отправке на сервер
+    function parsingData() {
+        let result = {};
+        let vertices = new Map();
+        let edges = new Map();
+        
+        for (let i = 0; i < geoObjects.length; i++)
+            vertices.set(geoObjects[i].id, geoObjects[i].value.getLatLng());
+        for (let [key, val] of pipes)
+            edges.set(key, val.getLatLngs());
+
+        result.vertices = Object.fromEntries(vertices);
+        result.edges = Object.fromEntries(edges);
+        result.info = Object.fromEntries(objectsInfo);
+        return result;
+    }
 </script>
 <script src="/pipe-popup-events.js"></script>
 </html>

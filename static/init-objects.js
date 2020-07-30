@@ -110,9 +110,6 @@ function initPipe(firstPoint) {
     }).setContent(ctxMenu);
     pipe.addTo(map);
     pipes.set(id, pipe);
-    objectsInfo.set(id, {
-        consumption: 0
-    });
 
     // Запуск редактора
     polylineEditor = pipe.enableEdit();

@@ -3,7 +3,7 @@ $('#map').on('click', '.initChamber', function(e) {
     map.closePopup();
     initObject('chamber', edPopup.getLatLng());
     // Возобновление построения пути
-    polylineEditor.continueBackward();
+    //polylineEditor.continueBackward();
 });
 
 // Добавление на карту потребителя
