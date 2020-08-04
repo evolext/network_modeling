@@ -1,3 +1,4 @@
+import numpy as np
 
 
 # Функция нахождения индекса строки или столбца с указанным идентификатором
@@ -17,10 +18,11 @@ def get_index(mtx, id, mode):
 
 vertices = {}
 edges = {}
+vertex_weights = {}
 
 
 # Считывание инфомрации о геообъектах
-objects_info = open('info/objects.txt', 'r')
+objects_info = open('../info/objects.txt', 'r')
 for line in objects_info:
     id = line.strip('\n')
     split_line = objects_info.readline().split('\t')
@@ -30,7 +32,7 @@ objects_info.close()
 
 
 # Считывание инфомрации о пайпах
-pipes_info = open('info/pipes.txt', 'r')
+pipes_info = open('../info/pipes.txt', 'r')
 for line in pipes_info:
     id = line.strip('\n')
     split_line = pipes_info.readline().split('\t')
@@ -41,6 +43,14 @@ for line in pipes_info:
     start_y = split_line[1].strip('\n')
     edges[id] = [[start_x, start_y], [end_x, end_y]]
 pipes_info.close()
+
+
+# Cчитывание инфомрации о расходах на узлах
+costs_info = open('../info/node_costs.txt', 'r')
+for line in costs_info:
+    id = line.strip('\n')
+    vertex_weights[id] = float(costs_info.readline().strip('\n'))
+costs_info.close()
 
 
 # Размерность матрицы инцидентности
@@ -63,12 +73,20 @@ for key_pipe, pipe in edges.items():            # Проход по всем п�
                 matrix[get_index(matrix, key_obj, True)][get_index(matrix, key_pipe, False)] = 1 if node == pipe[0] else -1
 
 
+# Извлекаем матрицу СЛАУ без последней строки
+A = np.array(matrix, dtype=np.int32)[1:-1, 1:]
+b = np.array(list(vertex_weights.values())[:-1])
+
+# Решение системы и вывод результатов
+x = np.linalg.solve(A, b)
+
+output = open('../info/pipe_costs.txt', 'w')
+for i in range(len(x)):
+    print('{0}\n{1}'.format(matrix[0][i + 1], x[i]), file=output)
+output.close()
 
 
 
 
-for i in range(len(matrix)):
-    for j in range(len(matrix[0])):
-        print(matrix[i][j], end='\t')
-    print()
+
 
