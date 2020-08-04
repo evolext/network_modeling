@@ -22,7 +22,7 @@ vertex_weights = {}
 
 
 # Считывание инфомрации о геообъектах
-objects_info = open('../info/objects.txt', 'r')
+objects_info = open('./info/objects.txt', 'r')
 for line in objects_info:
     id = line.strip('\n')
     split_line = objects_info.readline().split('\t')
@@ -32,7 +32,7 @@ objects_info.close()
 
 
 # Считывание инфомрации о пайпах
-pipes_info = open('../info/pipes.txt', 'r')
+pipes_info = open('./info/pipes.txt', 'r')
 for line in pipes_info:
     id = line.strip('\n')
     split_line = pipes_info.readline().split('\t')
@@ -46,7 +46,7 @@ pipes_info.close()
 
 
 # Cчитывание инфомрации о расходах на узлах
-costs_info = open('../info/node_costs.txt', 'r')
+costs_info = open('./info/node_costs.txt', 'r')
 for line in costs_info:
     id = line.strip('\n')
     vertex_weights[id] = float(costs_info.readline().strip('\n'))
@@ -80,7 +80,7 @@ b = np.array(list(vertex_weights.values())[:-1])
 # Решение системы и вывод результатов
 x = np.linalg.solve(A, b)
 
-output = open('../info/pipe_costs.txt', 'w')
+output = open('./info/pipe_costs.txt', 'w')
 for i in range(len(x)):
     print('{0}\n{1}'.format(matrix[0][i + 1], x[i]), file=output)
 output.close()

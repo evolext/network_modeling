@@ -1,10 +1,11 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const fs = require('fs');
+const spawn = require('child_process').spawn;
 
 
 const app = express();
-var server = require('http').createServer(app);
+const server = require('http').createServer(app);
 
 
 app.use(express.static(__dirname + '/static'));
@@ -33,6 +34,27 @@ app.post('/compute', function(request, response) {
     // Данные о расходах
     for (let [key, value] of Object.entries(request.body.info))
         fs.appendFileSync('info/node_costs.txt', `${key}\n${value.consumption}\n`);
+
+
+    // Запуск прогрраммы расчетов
+    const calc_prog = spawn('calculation\ programs/main.exe');
+    // Вывод ошибок на случай некорректного выполнения программы расчетов
+    calc_prog.stderr.on('data', (data) => {
+        console.error(`stderr: ${data}`);
+    });
+
+    // По окончании расчетов отправить результаты клиенту
+    calc_prog.on('exit', function () {
+        let result = new Map();
+        let lines = fs.readFileSync('info/pipe_costs.txt').toString().split('\n');
+        for (let i = 0; i < lines.length - 1; i += 2)
+            result.set(lines[i], lines[i + 1]);
+        
+        response.json({
+            data: Object.fromEntries(result)
+        });
+    });
+
 
     //console.log(request.body);
 });
