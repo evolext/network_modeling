@@ -40,6 +40,8 @@ td {
     border: none;
 }
 
+/* Стили контейнера с карторй и панели управления */
+
 #map {
     border: 1px solid black;
     height: 800px;
@@ -51,6 +53,42 @@ td {
 #toolsPanel {
     /* border: 1px solid black; */
     margin: 0;
+}
+
+#toolsPanel table {
+    border-collapse: separate;
+    border-spacing: 2px 4px;
+}
+
+#toolsPanel input {
+    font-size: 1.1em;
+    width: 100%;
+    cursor: pointer;
+    background-repeat: no-repeat;
+}
+
+#buttonAddSource {
+    background-image: url('icons/source.png');
+    background-size: 23px;
+}
+
+#buttonAddChamber {
+    background-image: url('icons/chamber.png');
+    background-position-x: -4px; 
+    background-position-y: -1px; 
+    background-size: 25px;
+}
+
+#buttonAddBranch {
+    background-image: url('icons/branch.png');
+    background-size: 22px;
+    background-position-x: -1px; 
+}
+
+#buttonAddConsumer {
+    background-image: url('icons/consumer.png');
+    background-size: 21px;
+    background-position-x: -1px; 
 }
 
 /* Стили контекстного меню объектов */

@@ -18,8 +18,23 @@
 <body>
     <div id="map"></div>
     <div id="toolsPanel">
-        <input type="button" value="Построить сеть" id="addSource"/>
-        <input type="button" value="Определить расход" onclick="sendData()">
+        <table>
+            <tr>
+                <td><input type="button" value="Источник" id="buttonAddSource"/></td>
+            </tr>
+            <tr>
+                <td><input type="button" value="Тепловая камера" id="buttonAddChamber"/></td>
+            </tr>
+            <tr>
+                <td><input type="button" value="Ответвление" id="buttonAddBranch"/></td>
+            </tr>
+            <tr>
+                <td><input type="button" value="Потребитель" id="buttonAddConsumer"/></td>
+            </tr>
+            <tr>
+                <td><input type="button" value="Определить расход" onclick="sendData()"></td>
+            </tr>
+        </table>
     </div>
 </body>
 <script>
@@ -54,7 +69,7 @@
     }).addTo(map);
 
 
-    document.getElementById('addSource').addEventListener('click', function() {
+    document.getElementById('buttonAddSource').addEventListener('click', function() {
         map.on('click', addSourceOnPoint);
     });
 
