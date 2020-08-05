@@ -1,8 +1,15 @@
+// Добавление объекта на карту в указанное место
+function addSourceOnPoint(e) {
+    initObject('source', e.latlng);
+    // Удаляем обработчик события
+    map.off('click', addSourceOnPoint);
+}
+
 /* Создание геообъекта
     @type - тип геообъекта
     @coordinates=undefined - координаты центра объекта
 */
-function initObject(type, coordinates = undefined){
+function initObject(type, coordinates){
     // Инициализация полей объекта, в зависимости от его типа
     let iconSize;
     let popupOffset = [0, -13];
@@ -12,7 +19,6 @@ function initObject(type, coordinates = undefined){
         case 'source':
             iconSize = [35, 35];
             popupOffset = [7, -13];
-            coordinates = map.getCenter();
             drag = true;
             break;
         case 'chamber':

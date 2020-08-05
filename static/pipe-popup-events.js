@@ -1,21 +1,11 @@
-// Добавление на карту тепловой камеры
-$('#map').on('click', '.initChamber', function(e) {
+// Добавление на карту тепловой камеры \ ответвления \ потребителя
+$('#map').on('click', '.initChamber, .initBranch, .initConsumer ', function() {
     map.closePopup();
-    initObject('chamber', edPopup.getLatLng());
-    // Возобновление построения пути
-    //polylineEditor.continueBackward();
-});
-
-// Добавление на карту потребителя
-$('#map').on('click', '.initConsumer', function(e) {
-    map.closePopup();
-    initObject('consumer', edPopup.getLatLng());
-});
-
-// Добавление ответвления пути
-$('#map').on('click', '.initBranch', function(e) {
-    map.closePopup();
-    initObject('branch', edPopup.getLatLng());
+    // Определение типа добавляемого объекта
+    let obj_type = this.className.split(' ').find(elem => elem.startsWith('init')).substr('init'.length).toLowerCase();
+    initObject(obj_type, edPopup.getLatLng());
+    // Завршить редактирование пайпа
+    endPipeEdit();
 });
 
 // Возобновление построение пути
@@ -27,13 +17,7 @@ $('#map').on('click', '.continuePipe', function() {
 // Завершение построения пути
 $('#map').on('click', '.endPipe', function() {
     map.closePopup();
-    let pipe = pipes.get(edId);
-    pipe.disableEdit();
-    pipe.bindPopup(pipePopup);
-
-    polylineEditor = null;
-    edId = null;
-    pipePopup = null;
+    endPipeEdit();
 });
 
 // Удаление последней вершины пути
@@ -60,6 +44,17 @@ $('#map').on('click', '.removePipe', function() {
     edId = null;
     pipePopup = null;
 });
+
+// Функция завершения редактирования пайпа
+function endPipeEdit() {
+    let pipe = pipes.get(edId);
+    pipe.disableEdit();
+    pipe.bindPopup(pipePopup);
+
+    polylineEditor = null;
+    edId = null;
+    pipePopup = null;
+}
 
 //-------------------------------------------------------------------------------------------------------------------
 

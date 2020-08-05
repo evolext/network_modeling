@@ -18,8 +18,8 @@
 <body>
     <div id="map"></div>
     <div id="toolsPanel">
-        <input type="button" value="Построить сеть" onclick="initObject('source')"/>
-        <input type="button" value="Отправить данные" onclick="sendData()">
+        <input type="button" value="Построить сеть" id="addSource"/>
+        <input type="button" value="Определить расход" onclick="sendData()">
     </div>
 </body>
 <script>
@@ -54,6 +54,11 @@
     }).addTo(map);
 
 
+    document.getElementById('addSource').addEventListener('click', function() {
+        map.on('click', addSourceOnPoint);
+    });
+
+    
     $('#map').on('click', '.startPipe', function(e) {
         let objId = Number(e.target.dataset.id);
         let index = geoObjects.findIndex((obj) => obj.id == objId);
@@ -93,6 +98,9 @@
         new_window.addEventListener('load', function() {
             let fields = new_window.document.querySelectorAll('input');
             fields[0].value = obj_info["consumption"].toString();
+
+            // Фокусировка на поле ввода
+            fields[0].focus();
         });
 
         // Обновляем данные после закрытия
