@@ -27,6 +27,7 @@
     var geoObjects = [];
     var pipes = new Map();
     var objectsInfo = new Map();
+    var pipesInfo = new Map();
     var polylineEditor;
 
     // Идентификаторр редактируемого пайпа
@@ -81,7 +82,8 @@
         map.closePopup();
 
         // Запрашиваемая инфомрация по объекту
-        let obj_info = objectsInfo.get(Number(e.target.dataset.id));
+        let obj_id = Number(e.target.dataset.id);
+        let obj_info = objectsInfo.has(obj_id) ? objectsInfo.get(obj_id) : pipesInfo.get(obj_id);
 
         // Настройка вида открывающегося окна
         let params = 'left=500,top=100,width=330,height=300';
@@ -136,9 +138,18 @@
             method: 'POST',
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(parsingData())
-        }).then(function(response) {
-            console.log(response);
-        }).catch(function(err) {
+        })
+        .then((response) => response.json())
+        // Запись результатов в структуры данных
+        .then(function(obj) {
+            let help;
+            for (let [key, value] of new Map(Object.entries(obj.data))) {
+                help = pipesInfo.get(Number(key));
+                help["consumption"] = Number(value);
+            }
+            alert('Расчеты проведены успешно');
+        })
+        .catch(function(err) {
 
         });
     }

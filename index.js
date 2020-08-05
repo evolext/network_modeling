@@ -50,9 +50,12 @@ app.post('/compute', function(request, response) {
         for (let i = 0; i < lines.length - 1; i += 2)
             result.set(lines[i], lines[i + 1]);
         
-        response.json({
+        response.send({
             data: Object.fromEntries(result)
         });
+
+        // Удаление созданных файлов
+        fs.rmdirSync(__dirname + '/info', { recursive: true });
     });
 
 
