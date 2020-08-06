@@ -68,12 +68,25 @@
         accessToken: 'pk.eyJ1IjoiZXZvbGV4dCIsImEiOiJja2Nqeml1dTcxcGJjMnFvOGdsZGxhOHV5In0.eaJ9XIWElB4JaCejC3JpJQ'
     }).addTo(map);
 
-
-    document.getElementById('buttonAddSource').addEventListener('click', function() {
-        map.on('click', addSourceOnPoint);
-    });
-
-    
+    // Назначение функции добавления объекта на карту по клику
+    document.getElementById('toolsPanel').querySelectorAll('input').forEach((item) => item.addEventListener('click', function(e) {
+        // Назначаем тип добавляемого объекта, извлекаем его с помощью "отсекания" строки buttonAdd от id кнопки
+        switch(this.id.slice('buttonAdd'.length).toLowerCase()) {
+            case 'source':
+                map.on('click', addSourceOnPoint);   
+                break;
+            case 'chamber':
+                map.on('click', addChamberOnPoint);
+                break;
+            case 'branch':
+                map.on('click', addBranchOnPoint);
+                break;
+            case 'consumer':
+                map.on('click', addConsumerOnPoint);
+                break;
+        }
+    }));
+        
     $('#map').on('click', '.startPipe', function(e) {
         let objId = Number(e.target.dataset.id);
         let index = geoObjects.findIndex((obj) => obj.id == objId);
@@ -154,6 +167,32 @@
     //     pipe_editor.appendShape([e.vertex.latlng, e.vertex.latlngs[0]]);
     //     global[0].toggleEdit();
     // });
+
+
+    // При соединении двух геообъектов пайпом
+    map.on('editable:drawing:click', function(e) {
+        let target = e.originalEvent.target;
+        if (target.id != 'map') {
+            e.cancel();
+
+            // Ставим точку точно в центр геообъекта
+            // 1. Находим элемент, по которому прошел клик
+            // 2. Получаем точки редактируеемого пайпа и добвляем к ним точку центра объекта, по которому прошел клик
+            // 3. Перерисовываем реедактируемый пайп
+            let obj = geoObjects.find(elem => elem.value._icon._leaflet_id == target._leaflet_id);
+            let pipe = pipes.get(edId);
+            let points = pipe.getLatLngs();
+            points.unshift(obj.value.getLatLng());
+            pipe.redraw();
+
+            // Завершаем редактирование
+            pipe.disableEdit();
+            pipe.bindPopup(pipePopup);
+            polylineEditor = null;
+            edId = null;
+            pipePopup = null;
+        }
+    });
 
 
     function sendData() {

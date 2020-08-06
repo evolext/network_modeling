@@ -5,6 +5,21 @@ function addSourceOnPoint(e) {
     map.off('click', addSourceOnPoint);
 }
 
+function addChamberOnPoint(e) {
+    initObject('chamber', e.latlng);
+    map.off('click', addChamberOnPoint);
+}
+
+function addBranchOnPoint(e) {
+    initObject('branch', e.latlng);
+    map.off('click', addBranchOnPoint);
+}
+
+function addConsumerOnPoint(e) {
+    initObject('consumer', e.latlng);
+    map.off('click', addConsumerOnPoint);
+}
+
 /* Создание геообъекта
     @type - тип геообъекта
     @coordinates=undefined - координаты центра объекта
@@ -19,7 +34,6 @@ function initObject(type, coordinates){
         case 'source':
             iconSize = [35, 35];
             popupOffset = [7, -13];
-            drag = true;
             break;
         case 'chamber':
             iconSize = [30, 30];
