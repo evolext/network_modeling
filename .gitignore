@@ -2,7 +2,6 @@
 /static/Leaflet.Editable.js
 package-lock.json
 /node_modules
-/info
 /calculation\ programs/*
 !/calculation\ programs/main.py
 заметки.txt

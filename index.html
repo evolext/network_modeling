@@ -102,12 +102,13 @@
         if (index >= 0) {
             geoObjects[index].value.removeFrom(map);
             geoObjects.splice(index, 1);
+            objectsInfo.delete(objId);
         }
         else {
             pipes.get(objId).removeFrom(map);
             pipes.delete(objId);
+            pipesInfo.delete(objId);
         }
-        objectsInfo.delete(objId);
     });
 
     // Показ информации по объекту

@@ -1,11 +1,49 @@
 // Добавление на карту тепловой камеры \ ответвления \ потребителя
-$('#map').on('click', '.initChamber, .initBranch, .initConsumer ', function() {
+$('#map').on('click', '.initChamber, .initBranch, .initConsumer', function() {
     map.closePopup();
     // Определение типа добавляемого объекта
     let obj_type = this.className.split(' ').find(elem => elem.startsWith('init')).substr('init'.length).toLowerCase();
+
+    // Если добавляется ответвление по середине пайпа (раздлеяем его на два)
+    if (obj_type == 'branch' && edPopup.getLatLng() != pipes.get(edId).getLatLngs()[0]) {
+        // Получаем координаты вершин одной и второй части пайпа
+        let pipe = pipes.get(edId);
+        let points = pipe.getLatLngs();
+        let index = points.indexOf(edPopup.getLatLng());
+        let new_points1 = points.slice(index);
+        let new_points2 = points.slice(0, index + 1);
+
+        // Удаляем "разделяемый пайп" и всю информацию с ним связанную
+        pipe.disableEdit();
+        pipe.remove();
+        pipes.delete(edId);
+        pipesInfo.delete(edId);
+        polylineEditor = null;
+        edId = null;
+        pipePopup = null;
+
+        // Создаем два новых пайпа
+        for (let coords of [new_points1, new_points2]) {
+            let new_pipe = L.polyline(coords, {});
+            new_pipe.bindPopup(
+                L.popup({
+                    closeButton: true
+                }).setContent(createCtxMenu('pipe'))
+            );
+            new_pipe.addTo(map);
+            pipes.set(id, new_pipe);
+            pipesInfo.set(id++, {
+                consumption: 0
+            });
+        }
+    }
+    else {
+        // Завршить редактирование пайпа
+        endPipeEdit();
+    }
+
+    // Добавление геообъекта
     initObject(obj_type, edPopup.getLatLng());
-    // Завршить редактирование пайпа
-    endPipeEdit();
 });
 
 // Возобновление построение пути
@@ -39,6 +77,7 @@ $('#map').on('click', '.removePipe', function() {
     pipe.toggleEdit();
     pipe.remove();
     pipes.delete(edId);
+    pipesInfo.delete(edId);
 
     polylineEditor = null;
     edId = null;

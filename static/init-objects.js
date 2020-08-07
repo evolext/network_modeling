@@ -95,6 +95,13 @@ function createCtxMenu(type){
                         "<tr><td><input type='button' value='Удалить объект' class='removeObject popupButton' data-id='" + id.toString() + "'/></td></tr>" +
                       "</table>";
             break;
+        case 'pipe':
+            ctxMenu = "<table>" +
+                        "<tr><td><input type='button' value='Редактировать' class='editPipe popupButton' data-id='" + id.toString() + "'/></td></tr>" +
+                        "<tr><td><input type='button' value='Информация' class='getInfo popupButton' data-id='" + id.toString() + "'/></td></tr>" +
+                        "<tr><td><input type='button' value='Удалить объект' class='removeObject popupButton' data-id='" + id.toString() + "'/></td></tr>" +
+                      "</table>";
+            break;
         default:
             ctxMenu = "<table>" +
                         "<tr><td><input type='button' value='Начать путь' class='startPipe popupButton' data-id='" + id.toString() + "'/></td></tr>" +
@@ -120,14 +127,9 @@ function initPipe(firstPoint) {
     }
 
     var pipe = L.polyline([firstPoint], {});
-    let ctxMenu = "<table>" +
-                    "<tr><td><input type='button' value='Редактировать' class='editPipe popupButton' data-id='" + id.toString() + "'/></td></tr>" +
-                    "<tr><td><input type='button' value='Информация' class='getInfo popupButton' data-id='" + id.toString() + "'/></td></tr>" +
-                    "<tr><td><input type='button' value='Удалить объект' class='removeObject popupButton' data-id='" + id.toString() + "'/></td></tr>" +
-                  "</table>";
     pipePopup= L.popup({
         closeButton: true
-    }).setContent(ctxMenu);
+    }).setContent(createCtxMenu('pipe'));
     pipe.addTo(map);
     pipes.set(id, pipe);
     pipesInfo.set(id, {
