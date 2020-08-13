@@ -5,9 +5,19 @@ function addSourceOnPoint(e) {
     map.off('click', addSourceOnPoint);
 }
 
-function addChamberOnPoint(e) {
-    initObject('chamber', e.latlng);
-    map.off('click', addChamberOnPoint);
+function addTowerOnPoint(e) {
+    initObject('tower', e.latlng);
+    map.off('click', addTowerOnPoint);
+}
+
+function addStandpipeOnPoint(e) {
+    initObject('standpipe', e.latlng);
+    map.off('click', addStandpipeOnPoint);
+}
+
+function addWellOnPoint(e) {
+    initObject('well', e.latlng);
+    map.off('click', addWellOnPoint);
 }
 
 function addBranchOnPoint(e) {
@@ -20,38 +30,46 @@ function addConsumerOnPoint(e) {
     map.off('click', addConsumerOnPoint);
 }
 
+
 /* Создание геообъекта
     @type - тип геообъекта
     @coordinates=undefined - координаты центра объекта
 */
 function initObject(type, coordinates){
     // Инициализация полей объекта, в зависимости от его типа
-    let iconSize;
-    let popupOffset = [0, -13];
+    let popupOffset;
+    let size = [30, 30];
     let drag = false;
-    switch(type)
-    {
+
+    switch (type) {
         case 'source':
-            iconSize = [25, 25];
-            popupOffset = [7, -13];
+            popupOffset = [1, -15];
             break;
-        case 'chamber': 
-            iconSize = [25, 25];
+        case 'tower':
+            popupOffset = [1, -15];
             break;
-        case 'consumer':
-            iconSize = [20, 20];
+        case 'standpipe':
+            popupOffset = [1, -10];
+            size = [25, 25];
+            break;
+        case 'well':
+            popupOffset = [1, -10];
+            size = [20, 20];
             break;
         case 'branch':
-            iconSize = [20, 20];
+            popupOffset = [1, -8];
+            size = [12, 12];
             break;
-        default:
-            throw new Error('Unknown object type');
-    }
+        case 'consumer':
+            popupOffset = [1, -8];
+            size = [15, 15];
+            break;
+}
 
     // Создание кастомной иконки объекта
     let objIcon = L.icon({
         iconUrl: `./icons/${type}.png`,
-        iconSize: iconSize,
+        iconSize: size,
         popupAnchor: popupOffset
     });
 
@@ -146,9 +164,13 @@ function initPipe(firstPoint) {
             "<table>" +
                 "<tr><td><input type='button' value='Продолжить путь' class='continuePipe popupButton'/></td></tr>" +
                 "<tr><td><input type='button' value='Завершить редактирование' class='endPipe popupButton'/></td></tr>" +
-                "<tr><td><input type='button' value='Тепловая камера' class='initChamber popupButton'/></td></tr>" +
-                "<tr><td><input type='button' value='Ответвление' class='initBranch popupButton'/></td></tr>" +
+
+                "<tr><td><input type='button' value='Водонапорная башня' class='initTower popupButton'/></td></tr>" +
+                "<tr><td><input type='button' value='Колонка' class='initStandpipe popupButton'/></td></tr>" +
+                "<tr><td><input type='button' value='Водопроводный колодец' class='initWell popupButton'/></td></tr>" +
+                "<tr><td><input type='button' value='Разветвление' class='initBranch popupButton'/></td></tr>" +
                 "<tr><td><input type='button' value='Потребитель' class='initConsumer popupButton'/></td></tr>" +
+
                 "<tr><td><input type='button' value='Удалить вершину' class='removeVertex popupButton'/></td></tr>" +
                 "<tr><td><input type='button' value='Удалить весь путь' class='removePipe popupButton'/></td></tr>" +
             "</table>"

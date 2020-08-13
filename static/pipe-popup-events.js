@@ -1,5 +1,5 @@
-// Добавление на карту тепловой камеры \ ответвления \ потребителя
-$('#map').on('click', '.initChamber, .initBranch, .initConsumer', function() {
+// Добавление на карту геообъекта (кроме источника)
+$('#map').on('click', '.initTower, .initStandpipe, .initWell, .initBranch, .initConsumer', function() {
     map.closePopup();
     // Определение типа добавляемого объекта
     let obj_type = this.className.split(' ').find(elem => elem.startsWith('init')).substr('init'.length).toLowerCase();

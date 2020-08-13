@@ -58,6 +58,7 @@ td {
 #toolsPanel table {
     border-collapse: separate;
     border-spacing: 2px 4px;
+    width: 14%;
 }
 
 #toolsPanel input {
@@ -65,30 +66,43 @@ td {
     width: 100%;
     cursor: pointer;
     background-repeat: no-repeat;
+    text-align: center;
 }
 
 #buttonAddSource {
     background-image: url('icons/source.png');
-    background-size: 23px;
+    /* background-size: 23px; */
+    background-position-y: 1px;
 }
 
-#buttonAddChamber {
-    background-image: url('icons/chamber.png');
-    background-position-x: -4px; 
-    background-position-y: -1px; 
-    background-size: 25px;
+#buttonAddTower {
+    background-image: url('icons/tower.png');
+    background-position-y: 1px;
+    background-position-x: -1px;
+}
+
+#buttonAddStandpipe {
+    background-image: url('icons/standpipe.png');
+    background-position-y: -2px;
+}
+
+#buttonAddWell {
+    background-image: url('icons/well.png');
+    background-position-y: 2px;
+    background-position-x: 3px;
 }
 
 #buttonAddBranch {
     background-image: url('icons/branch.png');
-    background-size: 22px;
-    background-position-x: -1px; 
+    background-size: 20px;
+    background-position-y: 1px;
+    background-position-x: 2px;
 }
 
 #buttonAddConsumer {
     background-image: url('icons/consumer.png');
-    background-size: 21px;
-    background-position-x: -1px; 
+    background-position-y: 3px;
+    background-position-x: 4px;
 }
 
 /* Стили контекстного меню объектов */
