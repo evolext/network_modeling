@@ -32,17 +32,17 @@ function initObject(type, coordinates){
     switch(type)
     {
         case 'source':
-            iconSize = [35, 35];
+            iconSize = [25, 25];
             popupOffset = [7, -13];
             break;
-        case 'chamber':
-            iconSize = [30, 30];
+        case 'chamber': 
+            iconSize = [25, 25];
             break;
         case 'consumer':
-            iconSize = [25, 25];
+            iconSize = [20, 20];
             break;
         case 'branch':
-            iconSize = [25, 25];
+            iconSize = [20, 20];
             break;
         default:
             throw new Error('Unknown object type');
