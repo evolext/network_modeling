@@ -82,27 +82,11 @@
 
     // Назначение функции добавления объекта на карту по клику
     document.getElementById('toolsPanel').querySelectorAll('input').forEach((item) => item.addEventListener('click', function(e) {
-        // Назначаем тип добавляемого объекта, извлекаем его с помощью "отсекания" строки buttonAdd от id кнопки
-        switch(this.id.slice('buttonAdd'.length).toLowerCase()) {
-            case 'source':
-                map.on('click', addSourceOnPoint);   
-                break;
-            case 'tower':
-                map.on('click', addTowerOnPoint);   
-                break;
-            case 'standpipe':
-                map.on('click', addStandpipeOnPoint);   
-                break;
-            case 'well':
-                map.on('click', addWellOnPoint);   
-                break;
-            case 'branch':
-                map.on('click', addBranchOnPoint);
-                break;
-            case 'consumer':
-                map.on('click', addConsumerOnPoint);
-                break;
-        }
+        // Отключаем обработчики, включенные ранее        
+        map.off('click');
+        // Определеяем тип добавляемого объекта, извлекаем его с помощью "отсекания" строки buttonAdd от id кнопки
+        let obj_type = this.id.slice('buttonAdd'.length).toLowerCase();
+        map.on('click', addObjectOnPoint.bind(null, obj_type));
     }));
         
     $('#map').on('click', '.startPipe', function(e) {

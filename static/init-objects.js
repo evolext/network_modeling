@@ -1,33 +1,8 @@
 // Добавление объекта на карту в указанное место
-function addSourceOnPoint(e) {
-    initObject('source', e.latlng);
+function addObjectOnPoint(type, e) {
+    initObject(type, e.latlng);
     // Удаляем обработчик события
-    map.off('click', addSourceOnPoint);
-}
-
-function addTowerOnPoint(e) {
-    initObject('tower', e.latlng);
-    map.off('click', addTowerOnPoint);
-}
-
-function addStandpipeOnPoint(e) {
-    initObject('standpipe', e.latlng);
-    map.off('click', addStandpipeOnPoint);
-}
-
-function addWellOnPoint(e) {
-    initObject('well', e.latlng);
-    map.off('click', addWellOnPoint);
-}
-
-function addBranchOnPoint(e) {
-    initObject('branch', e.latlng);
-    map.off('click', addBranchOnPoint);
-}
-
-function addConsumerOnPoint(e) {
-    initObject('consumer', e.latlng);
-    map.off('click', addConsumerOnPoint);
+    map.off('click');
 }
 
 
