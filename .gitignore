@@ -5,3 +5,4 @@ package-lock.json
 /calculation\ programs/*
 !/calculation\ programs/main.py
 заметки.txt
+/networks

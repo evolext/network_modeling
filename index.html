@@ -8,6 +8,7 @@
 
     <script src="./Leaflet.Editable.js"></script>
     <script src="./init-objects.js"></script>
+    <script src="./server-requests.js"></script>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
@@ -39,10 +40,19 @@
             </tr>
         </table>
         <table>
-            <caption>Выполнить действие</caption>
+            <caption>Выполнить расчеты</caption>
             <tr>
                 <td><input type="button" value="Определить расход"></td>
                 <!-- <td><input type="button" value="Определить расход" onclick="sendData()"></td> -->
+            </tr>
+        </table>
+        <table>
+            <caption>Схема</caption>
+            <tr>
+                <td><input type="button" value="Сохранить" onclick="saveNetwork()"></td>
+            </tr>
+            <tr>
+                <td><input type="button" value="Загрузить"></td>
             </tr>
         </table>
     </div>
@@ -190,45 +200,6 @@
             pipePopup = null;
         }
     });
-
-
-    function sendData() {
-        fetch('/compute', {
-            method: 'POST',
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(parsingData())
-        })
-        .then((response) => response.json())
-        // Запись результатов в структуры данных
-        .then(function(obj) {
-            let help;
-            for (let [key, value] of new Map(Object.entries(obj.data))) {
-                help = pipesInfo.get(Number(key));
-                help["consumption"] = Number(value);
-            }
-            alert('Расчеты проведены успешно');
-        })
-        .catch(function(err) {
-
-        });
-    }
-
-    // Подготовка данных об объектах к отправке на сервер
-    function parsingData() {
-        let result = {};
-        let vertices = new Map();
-        let edges = new Map();
-        
-        for (let i = 0; i < geoObjects.length; i++)
-            vertices.set(geoObjects[i].id, geoObjects[i].value.getLatLng());
-        for (let [key, val] of pipes)
-            edges.set(key, val.getLatLngs());
-
-        result.vertices = Object.fromEntries(vertices);
-        result.edges = Object.fromEntries(edges);
-        result.info = Object.fromEntries(objectsInfo);
-        return result;
-    }
 </script>
 <script src="/pipe-popup-events.js"></script>
 </html>

@@ -17,7 +17,7 @@ app.get('/', function (request, response) {
     response.sendFile(__dirname + "/index.html");
 });
 
-// Получение данных от клиента
+// Получение данных для расчета
 app.post('/compute', function(request, response) {
     // Создание файлов для сохранения данных
     fs.mkdirSync(__dirname + '/info');
@@ -60,6 +60,31 @@ app.post('/compute', function(request, response) {
 
 
     //console.log(request.body);
+});
+
+
+// Получение данных для сохранения
+app.post('/save', function(request, response) {
+    // Сохраняем глобальные переменные
+    fs.writeFileSync('networks/global.txt', `${request.body.id}\n${request.body.center.lat}\t${request.body.center.lng}`);
+
+    // Сохранение данных о геообъектах
+    fs.writeFileSync('networks/objects.txt', '');
+    for (let [key, value] of Object.entries(request.body.vertices))
+        fs.appendFileSync('networks/objects.txt', `${key}\n${value.type}\n${value.coord.lat}\t${value.coord.lng}\n`);
+
+    // Сохранение данных о пайпах
+    fs.writeFileSync('networks/pipes.txt', '');
+    for (let [key, value] of Object.entries(request.body.edges)) {
+        fs.appendFileSync('networks/pipes.txt', `${key}\n`);
+        for (let i = value.length - 1; i >= 0; i--)
+            fs.appendFileSync('networks/pipes.txt', `${value[i].lat}\t${value[i].lng}\n`);
+        fs.appendFileSync('networks/pipes.txt', '#\n');
+    }
+
+    response.send({});
+
+    console.log(request.body.edges);
 });
 
 server.listen(5000);

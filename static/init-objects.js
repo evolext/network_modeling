@@ -39,7 +39,7 @@ function initObject(type, coordinates){
             popupOffset = [1, -8];
             size = [15, 15];
             break;
-}
+    }
 
     // Создание кастомной иконки объекта
     let objIcon = L.icon({
