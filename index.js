@@ -17,6 +17,56 @@ app.get('/', function (request, response) {
     response.sendFile(__dirname + "/index.html");
 });
 
+// Отправка данных для загрузки схемы
+app.get('/load', function(request, response) {
+    let network = {};
+    network.vertices = {};
+    network.edges = {};
+
+    // Глобальное id и центр карты
+    let info = fs.readFileSync('networks/global.txt').toString().split('\n');
+    network.id = Number(info[0]);
+    network.center = {
+        lat: Number(info[1].split('\t')[0]),
+        lng: Number(info[1].split('\t')[1])
+    };
+
+    // Инфомрация об объектах
+    info = fs.readFileSync('networks/objects.txt').toString().split('\n');
+    for (let i = 0; i < info.length - 1; i += 3) {
+        network.vertices[info[i]] = {
+            type: info[i + 1],
+            coord: {
+                lat: Number(info[i + 2].split('\t')[0]),
+                lng: Number(info[i + 2].split('\t')[1])
+            }
+        }
+    }
+
+    // Информация о пайпах
+    info = fs.readFileSync('networks/pipes.txt').toString().split('\n');
+    let j;
+    for (let i = 0; i < info.length - 1;) {
+        network.edges[info[i]] = [];
+        j = i + 1;
+        while (true) {
+            if (info[j] != '#') {
+                network.edges[info[i]].push({
+                    lat: Number(info[j].split('\t')[0]),
+                    lng: Number(info[j].split('\t')[1])
+                });
+                j++;
+            }
+            else {
+                i = j + 1;
+                break;
+            }
+        }
+    }
+
+    response.send(network);
+});
+
 // Получение данных для расчета
 app.post('/compute', function(request, response) {
     // Создание файлов для сохранения данных
@@ -58,7 +108,6 @@ app.post('/compute', function(request, response) {
         fs.rmdirSync(__dirname + '/info', { recursive: true });
     });
 
-
     //console.log(request.body);
 });
 
@@ -83,8 +132,6 @@ app.post('/save', function(request, response) {
     }
 
     response.send({});
-
-    console.log(request.body.edges);
 });
 
 server.listen(5000);

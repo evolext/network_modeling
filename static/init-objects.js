@@ -9,12 +9,17 @@ function addObjectOnPoint(type, e) {
 /* Создание геообъекта
     @type - тип геообъекта
     @coordinates=undefined - координаты центра объекта
+    @key - он же id объекта, в общем случае устанавливается автоматически, но при загрузке схемы можно задать вручную
 */
-function initObject(type, coordinates){
+function initObject(type, coordinates, key=undefined){
     // Инициализация полей объекта, в зависимости от его типа
     let popupOffset;
     let size = [30, 30];
     let drag = false;
+    console.log(id);
+    if (typeof key === 'undefined')
+        key = id++;
+    console.log(key);
 
     switch (type) {
         case 'source':
@@ -54,52 +59,53 @@ function initObject(type, coordinates){
     }).addTo(map);
 
     // Контекстное меню объекта
-    obj.bindPopup(createCtxMenu(type), {
+    obj.bindPopup(createCtxMenu(type, key), {
         closeButton: true
     });
 
     geoObjects.push({
-        id: id,
+        id: key,
         type: type,
         value: obj
     });
-    objectsInfo.set(id++, {
+    objectsInfo.set(key, {
         consumption: 0
     });
 }
 
 /* Функция получения шаблона контекстного меню объекта
     @type - тип геообъекта
+    @obj_id - идентификатор геообъекта
 */
-function createCtxMenu(type){
+function createCtxMenu(type, obj_id){
     let ctxMenu;
     switch(type) 
     {
         case 'source':
             ctxMenu = "<table>" +
-                        "<tr><td><input type='button' value='Начать путь' class='startPipe popupButton' data-id='" + id.toString() + "'/></td></tr>" +
-                        "<tr><td><input type='button' value='Информация' class='getInfo popupButton' data-id='" + id.toString() + "'/></td></tr>" +
-                        "<tr><td><input type='button' value='Удалить объект' class='removeObject popupButton' data-id='" + id.toString() + "'/></td></tr>" +
+                        "<tr><td><input type='button' value='Начать путь' class='startPipe popupButton' data-id='" + obj_id + "'/></td></tr>" +
+                        "<tr><td><input type='button' value='Информация' class='getInfo popupButton' data-id='" + obj_id + "'/></td></tr>" +
+                        "<tr><td><input type='button' value='Удалить объект' class='removeObject popupButton' data-id='" + obj_id + "'/></td></tr>" +
                       "</table>";
             break;
         case 'consumer':
             ctxMenu = "<table>" +
-                        "<tr><td><input type='button' value='Информация' class='getInfo popupButton' data-id='" + id.toString() + "'/></td></tr>" +
-                        "<tr><td><input type='button' value='Удалить объект' class='removeObject popupButton' data-id='" + id.toString() + "'/></td></tr>" +
+                        "<tr><td><input type='button' value='Информация' class='getInfo popupButton' data-id='" + obj_id + "'/></td></tr>" +
+                        "<tr><td><input type='button' value='Удалить объект' class='removeObject popupButton' data-id='" + obj_id + "'/></td></tr>" +
                       "</table>";
             break;
         case 'pipe':
             ctxMenu = "<table>" +
-                        "<tr><td><input type='button' value='Редактировать' class='editPipe popupButton' data-id='" + id.toString() + "'/></td></tr>" +
-                        "<tr><td><input type='button' value='Информация' class='getInfo popupButton' data-id='" + id.toString() + "'/></td></tr>" +
-                        "<tr><td><input type='button' value='Удалить объект' class='removeObject popupButton' data-id='" + id.toString() + "'/></td></tr>" +
+                        "<tr><td><input type='button' value='Редактировать' class='editPipe popupButton' data-id='" + obj_id + "'/></td></tr>" +
+                        "<tr><td><input type='button' value='Информация' class='getInfo popupButton' data-id='" + obj_id + "'/></td></tr>" +
+                        "<tr><td><input type='button' value='Удалить объект' class='removeObject popupButton' data-id='" + obj_id + "'/></td></tr>" +
                       "</table>";
             break;
         default:
             ctxMenu = "<table>" +
-                        "<tr><td><input type='button' value='Начать путь' class='startPipe popupButton' data-id='" + id.toString() + "'/></td></tr>" +
-                        "<tr><td><input type='button' value='Информация' class='getInfo popupButton' data-id='" + id.toString() + "'/></td></tr>" +
-                        "<tr><td><input type='button' value='Удалить объект' class='removeObject popupButton' data-id='" + id.toString() + "'/></td></tr>" +
+                        "<tr><td><input type='button' value='Начать путь' class='startPipe popupButton' data-id='" + obj_id + "'/></td></tr>" +
+                        "<tr><td><input type='button' value='Информация' class='getInfo popupButton' data-id='" + obj_id + "'/></td></tr>" +
+                        "<tr><td><input type='button' value='Удалить объект' class='removeObject popupButton' data-id='" + obj_id + "'/></td></tr>" +
                       "</table>";     
             break;
     }

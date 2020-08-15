@@ -20,6 +20,44 @@ function sendData() {
     });
 }
 
+// Отправка данных для сохранения схемы на сервере
+function saveNetwork() {
+    fetch('/save', {
+        method: 'POST',
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(parsingData('save'))
+    })
+    .then(() => alert('Данные успешно сохранены'))
+    .catch(function(err) {
+
+    });
+}
+
+// Загрузка сохраненной на сервере схемы
+function loadNetwork() {
+    resetAll();
+
+    fetch('/load')
+        .then(response => response.json())
+        .then(function(network) {
+            // Установка значений глобальных параметров
+            id = network.id;
+            map.setView(network.center);
+
+            // Добавление геообъектов
+            for (let [key, value] of Object.entries(network.vertices)) {
+                initObject(value.type, value.coord, Number(key));
+            }
+
+            
+        })
+        .catch(function(err) {
+
+        });
+}
+
+//--------------------------------------------------------------------------------------------------------------
+
 // Подготовка объекта с данными к отправке на сервер
 // @mode - для каких целей подготавливаются данные:
 // "send" - отправка для расчета, "save" - отправка для сохранеения
@@ -58,17 +96,19 @@ function parsingData(mode) {
     return result;
 }
 
-//--------------------------------------------------------------------------------------------------------------
+// Очистка глобальных объектов и удаление объектов с карты
+function resetAll() {
+    for (let i = 0; i < geoObjects.length; i++)
+        geoObjects[i].value.remove();
+    for (let pipe of pipes.values())
+        pipe.remove(); 
 
-// Отправка данных для сохранения схемы на сервере
-function saveNetwork() {
-    fetch('/save', {
-        method: 'POST',
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(parsingData('save'))
-    })
-    .then(() => alert('Данные успешно сохранены'))
-    .catch(function(err) {
-
-    });
+    geoObjects.length = 0;
+    pipes.clear();
+    objectsInfo.clear();
+    pipesInfo.clear();
+    polylineEditor = null;
+    edId = null;
+    edPopup = null;
+    pipePopup = null;
 }
