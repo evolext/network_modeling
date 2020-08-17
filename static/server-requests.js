@@ -49,6 +49,22 @@ function loadNetwork() {
                 initObject(value.type, value.coord, Number(key));
             }
 
+            // Добавление пайпов
+            let new_pipe;
+            for (let [key, coords] of Object.entries(network.edges)) {
+                new_pipe = L.polyline(coords, {});
+                new_pipe.bindPopup(
+                    L.popup({
+                        closeButton: true
+                    }).setContent(createCtxMenu('pipe', key))
+                );
+                new_pipe.addTo(map);
+                pipes.set(Number(key), new_pipe);
+                pipesInfo.set(Number(key), {
+                    consumption: 0
+                });
+            }
+
             
         })
         .catch(function(err) {

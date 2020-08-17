@@ -126,7 +126,7 @@ app.post('/save', function(request, response) {
     fs.writeFileSync('networks/pipes.txt', '');
     for (let [key, value] of Object.entries(request.body.edges)) {
         fs.appendFileSync('networks/pipes.txt', `${key}\n`);
-        for (let i = value.length - 1; i >= 0; i--)
+        for (let i = 0; i < value.length; i++)
             fs.appendFileSync('networks/pipes.txt', `${value[i].lat}\t${value[i].lng}\n`);
         fs.appendFileSync('networks/pipes.txt', '#\n');
     }

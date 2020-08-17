@@ -157,7 +157,26 @@
 
     map.on('editable:vertex:contextmenu', function (e) {
         map.editTools.stopDrawing();
+
         // Открытие контекстного меню редактора пайпа
+        if (!edPopup) {
+        edPopup= L.popup();
+        edPopup.setContent(
+            "<table>" +
+                "<tr><td><input type='button' value='Продолжить путь' class='continuePipe popupButton'/></td></tr>" +
+                "<tr><td><input type='button' value='Завершить редактирование' class='endPipe popupButton'/></td></tr>" +
+
+                "<tr><td><input type='button' value='Водонапорная башня' class='initTower popupButton'/></td></tr>" +
+                "<tr><td><input type='button' value='Колонка' class='initStandpipe popupButton'/></td></tr>" +
+                "<tr><td><input type='button' value='Водопроводный колодец' class='initWell popupButton'/></td></tr>" +
+                "<tr><td><input type='button' value='Разветвление' class='initBranch popupButton'/></td></tr>" +
+                "<tr><td><input type='button' value='Потребитель' class='initConsumer popupButton'/></td></tr>" +
+
+                "<tr><td><input type='button' value='Удалить вершину' class='removeVertex popupButton'/></td></tr>" +
+                "<tr><td><input type='button' value='Удалить весь путь' class='removePipe popupButton'/></td></tr>" +
+            "</table>"
+        );
+        }
         edPopup.setLatLng(e.latlng);
         edPopup.openOn(map);
 

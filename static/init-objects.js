@@ -11,15 +11,13 @@ function addObjectOnPoint(type, e) {
     @coordinates=undefined - координаты центра объекта
     @key - он же id объекта, в общем случае устанавливается автоматически, но при загрузке схемы можно задать вручную
 */
-function initObject(type, coordinates, key=undefined){
+function initObject(type, coordinates, key = undefined){
     // Инициализация полей объекта, в зависимости от его типа
     let popupOffset;
     let size = [30, 30];
     let drag = false;
-    console.log(id);
     if (typeof key === 'undefined')
         key = id++;
-    console.log(key);
 
     switch (type) {
         case 'source':
@@ -128,7 +126,7 @@ function initPipe(firstPoint) {
     var pipe = L.polyline([firstPoint], {});
     pipePopup= L.popup({
         closeButton: true
-    }).setContent(createCtxMenu('pipe'));
+    }).setContent(createCtxMenu('pipe', id));
     pipe.addTo(map);
     pipes.set(id, pipe);
     pipesInfo.set(id, {
@@ -139,22 +137,4 @@ function initPipe(firstPoint) {
     polylineEditor = pipe.enableEdit();
     polylineEditor.continueBackward();
     edId = id++;
-    if (!edPopup) {
-        edPopup= L.popup();
-        edPopup.setContent(
-            "<table>" +
-                "<tr><td><input type='button' value='Продолжить путь' class='continuePipe popupButton'/></td></tr>" +
-                "<tr><td><input type='button' value='Завершить редактирование' class='endPipe popupButton'/></td></tr>" +
-
-                "<tr><td><input type='button' value='Водонапорная башня' class='initTower popupButton'/></td></tr>" +
-                "<tr><td><input type='button' value='Колонка' class='initStandpipe popupButton'/></td></tr>" +
-                "<tr><td><input type='button' value='Водопроводный колодец' class='initWell popupButton'/></td></tr>" +
-                "<tr><td><input type='button' value='Разветвление' class='initBranch popupButton'/></td></tr>" +
-                "<tr><td><input type='button' value='Потребитель' class='initConsumer popupButton'/></td></tr>" +
-
-                "<tr><td><input type='button' value='Удалить вершину' class='removeVertex popupButton'/></td></tr>" +
-                "<tr><td><input type='button' value='Удалить весь путь' class='removePipe popupButton'/></td></tr>" +
-            "</table>"
-        );
-    }
 }
