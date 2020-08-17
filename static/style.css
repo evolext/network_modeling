@@ -70,39 +70,50 @@ td {
 }
 
 #buttonAddSource {
-    background-image: url('icons/source.png');
+    background-image: url('icons/active/source.png');
     /* background-size: 23px; */
     background-position-y: 1px;
 }
 
+#buttonAddReservoir {
+    background-image: url('icons/active/reservoir.png');
+    background-position-y: -1px;
+}
+
 #buttonAddTower {
-    background-image: url('icons/tower.png');
-    background-position-y: 1px;
-    background-position-x: -1px;
-}
-
-#buttonAddStandpipe {
-    background-image: url('icons/standpipe.png');
-    background-position-y: -2px;
-}
-
-#buttonAddWell {
-    background-image: url('icons/well.png');
-    background-position-y: 2px;
-    background-position-x: 3px;
-}
-
-#buttonAddBranch {
-    background-image: url('icons/branch.png');
-    background-size: 20px;
+    background-image: url('icons/active/tower.png');
     background-position-y: 1px;
     background-position-x: 2px;
 }
 
+#buttonAddStandpipe {
+    background-image: url('icons/active/standpipe.png');
+    background-position-y: -2px;
+    background-position-x: 3px;
+}
+
+#buttonAddHydrant {
+    background-image: url('icons/active/hydrant.png');
+    background-position-x: 6px;
+    background-position-y: 1px;
+}
+
+#buttonAddWell {
+    background-image: url('icons/active/well.png');
+    background-position-y: 2px;
+    background-position-x: 6px;
+}
+
+#buttonAddBranch {
+    background-image: url('icons/active/branch.png');
+    background-position-y: 5px;
+    background-position-x: 9px;
+}
+
 #buttonAddConsumer {
-    background-image: url('icons/consumer.png');
+    background-image: url('icons/active/consumer.png');
     background-position-y: 3px;
-    background-position-x: 4px;
+    background-position-x: 8px;
 }
 
 /* Стили контекстного меню объектов */

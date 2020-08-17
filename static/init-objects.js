@@ -26,12 +26,19 @@ function initObject(type, coordinates, key = undefined){
         case 'tower':
             popupOffset = [1, -15];
             break;
+        case 'reservoir':
+            popupOffset = [-3, -15];
+            break;
         case 'standpipe':
             popupOffset = [1, -10];
             size = [25, 25];
             break;
+        case 'hydrant':
+            popupOffset = [0, -10];
+            size = [20, 20];
+            break;
         case 'well':
-            popupOffset = [1, -10];
+            popupOffset = [0, -10];
             size = [20, 20];
             break;
         case 'branch':
@@ -46,7 +53,7 @@ function initObject(type, coordinates, key = undefined){
 
     // Создание кастомной иконки объекта
     let objIcon = L.icon({
-        iconUrl: `./icons/${type}.png`,
+        iconUrl: `./icons/active/${type}.png`,
         iconSize: size,
         popupAnchor: popupOffset
     });
