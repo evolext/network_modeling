@@ -120,4 +120,89 @@ td {
 .popupButton {
     width: 100%;
     text-align: left;
+    background-color: white;
+    border: none;
+}
+
+.popupButton:hover {
+    background-color: rgba(236, 236, 236, 0.61);
+}
+
+.popupButton:active, .popupButton:focus {
+    outline: none;
+}
+
+table {
+    width: 100%;
+}
+
+.leaflet-popup-content-wrapper caption {
+    font-size: 1.3em;
+    font-weight: 500;
+}
+
+.leaflet-popup-content-wrapper table {
+    border-collapse: separate;
+    border-spacing: 2px;
+}
+
+/* Стилизация переключателя режим объекта */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 32px;
+    height: 16px;
+    top: 3px;
+    border: 1px solid black;
+    border-radius: 16px;
+}
+
+.switch input {
+    display: none;
+}
+  
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgb(250, 3, 3);
+    -webkit-transition: .4s;
+    transition: .4s;
+    border-radius: 16px;
+}
+  
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 0px;
+    bottom: 0px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+    border-radius: 50%;
+}
+  
+input:checked + .slider {
+background-color: #09ff00;
+}
+  
+input:focus + .slider {
+    box-shadow: 0 0 1px #09ff00;
+}
+  
+input:checked + .slider:before {
+    -webkit-transform: translateX(16px);
+    -ms-transform: translateX(16px);
+    transform: translateX(16px);
+}
+
+.switch-container {
+    font: 400 13.3333px Arial;
+    padding-left: 6px;
+    padding-bottom: 20px;
 }

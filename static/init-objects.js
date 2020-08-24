@@ -11,13 +11,71 @@ function addObjectOnPoint(type, e) {
     @coordinates=undefined - координаты центра объекта
     @key - он же id объекта, в общем случае устанавливается автоматически, но при загрузке схемы можно задать вручную
 */
-function initObject(type, coordinates, key = undefined){
-    // Инициализация полей объекта, в зависимости от его типа
-    let popupOffset;
-    let size = [30, 30];
+function initObject(type, coordinates, key = undefined) {
     let drag = false;
     if (typeof key === 'undefined')
         key = id++;
+
+    // Создание кастомной иконки объекта
+    let objIcon = createIcon(type);
+
+    var obj = L.marker(coordinates, {
+        icon: objIcon,
+        draggable: drag
+    }).addTo(map);
+
+    // Контекстное меню объекта
+    obj.bindPopup(createCtxMenu(type, key), {
+        closeButton: true
+    });
+
+    geoObjects.push({
+        id: key,
+        type: type,
+        value: obj
+    });
+    objectsInfo.set(key, {
+        consumption: 0
+    });
+}
+
+/* Функция получения шаблона контекстного меню объекта
+    @type - тип геообъекта
+    @obj_id - идентификатор геообъекта
+*/
+function createCtxMenu(type, obj_id){
+    let ctxMenu = "<table>";
+    switch(type) 
+    {
+        case 'consumer':
+            break;
+        case 'pipe':
+            ctxMenu += "<tr><td><input type='button' value='Редактировать' class='editPipe popupButton' data-id='" + obj_id + "'/></td></tr>";
+            break;
+        default:
+            ctxMenu += "<tr><td><input type='button' value='Начать путь' class='startPipe popupButton' data-id='" + obj_id + "'/></td></tr>";     
+            break;
+    }
+    ctxMenu += "<tr><td><input type='button' value='Информация' class='getInfo popupButton' data-id='" + obj_id + "'/></td></tr>";
+    ctxMenu += "<tr><td><input type='button' value='Удалить объект' class='removeObject popupButton' data-id='" + obj_id + "'/></td></tr>";
+    // Переключатель режима геообъекта
+    if (type != 'well' && type != 'branch' && type != 'pipe') {
+        ctxMenu +=
+        "<tr><td class='switch-container'>" +
+            "Состояние (выкл\\вкл): <label class='switch'><input type='checkbox' class='toggleObject' data-id='" + obj_id + "'><span class='slider'></span></label>" + 
+        "</td></tr>";
+    }
+    ctxMenu += "</table>";
+    return ctxMenu;
+}
+
+/* Функция получения кастомной икноки геообъекта
+    @type - тип геообъекта
+    @mode - включен ли геообъект
+*/
+function createIcon(type, mode=true) {
+    let popupOffset;
+    let size = [30, 30];
 
     switch (type) {
         case 'source':
@@ -50,71 +108,14 @@ function initObject(type, coordinates, key = undefined){
             size = [15, 15];
             break;
     }
-
-    // Создание кастомной иконки объекта
-    let objIcon = L.icon({
-        iconUrl: `./icons/active/${type}.png`,
+    let url = mode ? `./icons/active/${type}.png` : `./icons/inactive/${type}.png`;
+    let icon = L.icon({
+        iconUrl: url,
         iconSize: size,
         popupAnchor: popupOffset
     });
 
-    var obj = L.marker(coordinates, {
-        icon: objIcon,
-        draggable: drag
-    }).addTo(map);
-
-    // Контекстное меню объекта
-    obj.bindPopup(createCtxMenu(type, key), {
-        closeButton: true
-    });
-
-    geoObjects.push({
-        id: key,
-        type: type,
-        value: obj
-    });
-    objectsInfo.set(key, {
-        consumption: 0
-    });
-}
-
-/* Функция получения шаблона контекстного меню объекта
-    @type - тип геообъекта
-    @obj_id - идентификатор геообъекта
-*/
-function createCtxMenu(type, obj_id){
-    let ctxMenu;
-    switch(type) 
-    {
-        case 'source':
-            ctxMenu = "<table>" +
-                        "<tr><td><input type='button' value='Начать путь' class='startPipe popupButton' data-id='" + obj_id + "'/></td></tr>" +
-                        "<tr><td><input type='button' value='Информация' class='getInfo popupButton' data-id='" + obj_id + "'/></td></tr>" +
-                        "<tr><td><input type='button' value='Удалить объект' class='removeObject popupButton' data-id='" + obj_id + "'/></td></tr>" +
-                      "</table>";
-            break;
-        case 'consumer':
-            ctxMenu = "<table>" +
-                        "<tr><td><input type='button' value='Информация' class='getInfo popupButton' data-id='" + obj_id + "'/></td></tr>" +
-                        "<tr><td><input type='button' value='Удалить объект' class='removeObject popupButton' data-id='" + obj_id + "'/></td></tr>" +
-                      "</table>";
-            break;
-        case 'pipe':
-            ctxMenu = "<table>" +
-                        "<tr><td><input type='button' value='Редактировать' class='editPipe popupButton' data-id='" + obj_id + "'/></td></tr>" +
-                        "<tr><td><input type='button' value='Информация' class='getInfo popupButton' data-id='" + obj_id + "'/></td></tr>" +
-                        "<tr><td><input type='button' value='Удалить объект' class='removeObject popupButton' data-id='" + obj_id + "'/></td></tr>" +
-                      "</table>";
-            break;
-        default:
-            ctxMenu = "<table>" +
-                        "<tr><td><input type='button' value='Начать путь' class='startPipe popupButton' data-id='" + obj_id + "'/></td></tr>" +
-                        "<tr><td><input type='button' value='Информация' class='getInfo popupButton' data-id='" + obj_id + "'/></td></tr>" +
-                        "<tr><td><input type='button' value='Удалить объект' class='removeObject popupButton' data-id='" + obj_id + "'/></td></tr>" +
-                      "</table>";     
-            break;
-    }
-    return ctxMenu;
+    return icon;
 }
 
 // Инициализация пайпа
@@ -137,6 +138,7 @@ function initPipe(firstPoint) {
     pipe.addTo(map);
     pipes.set(id, pipe);
     pipesInfo.set(id, {
+        activity: 1,
         consumption: 0
     });
 

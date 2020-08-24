@@ -169,9 +169,20 @@
             edPopup= L.popup();
             edPopup.setContent(
                 "<table>" +
-                    "<tr><td><input type='button' value='Продолжить путь' class='continuePipe popupButton'/></td></tr>" +
+                    "<caption>Путь</caption>" + 
+                    "<tr><td><input type='button' value='Продолжить' class='continuePipe popupButton'/></td></tr>" +
                     "<tr><td><input type='button' value='Завершить редактирование' class='endPipe popupButton'/></td></tr>" +
+                    "<tr><td><input type='button' value='Удалить вершину' class='removeVertex popupButton'/></td></tr>" +
+                    "<tr><td><input type='button' value='Удалить весь путь' class='removePipe popupButton'/></td></tr>" +
+                    "<tr>" + 
+                        "<td class='switch-container'>" +
+                            `Состояние (выкл\\вкл): <label class='switch'><input type='checkbox' class='toggleObject'><span class='slider'></span></label>` + 
+                        "</td>" +
+                    "</tr>" +
+                "</table>" +
 
+                "<table>" +
+                    "<caption>Добавить объект</caption>" + 
                     "<tr><td><input type='button' value='Водонапорная башня' class='initTower popupButton'/></td></tr>" +
                     "<tr><td><input type='button' value='Контррезервуар' class='initReservoir popupButton'/></td></tr>" +
                     "<tr><td><input type='button' value='Колонка' class='initStandpipe popupButton'/></td></tr>" +
@@ -179,28 +190,36 @@
                     "<tr><td><input type='button' value='Водопроводный колодец' class='initWell popupButton'/></td></tr>" +
                     "<tr><td><input type='button' value='Разветвление' class='initBranch popupButton'/></td></tr>" +
                     "<tr><td><input type='button' value='Потребитель' class='initConsumer popupButton'/></td></tr>" +
-
-                    "<tr><td><input type='button' value='Удалить вершину' class='removeVertex popupButton'/></td></tr>" +
-                    "<tr><td><input type='button' value='Удалить весь путь' class='removePipe popupButton'/></td></tr>" +
-                "</table>"
+                "</table>"   
             );
         }
         edPopup.setLatLng(e.latlng);
         edPopup.openOn(map);
+        document.querySelectorAll('div.leaflet-popup-content-wrapper table')[1].hidden = false;
 
-        // Какие пункты не нужно отображать (зависит от индекса вершины)
-        let hiddenButtons = [];
+        // Индексы кнопок контеекстного меню, которые необходимо отобразить
+        let visibleButtons = Array.from(document.querySelectorAll('div.leaflet-popup-content .popupButton')).reduce(function (prev, elem, index) {
+            prev.push(index);
+            return prev;
+        }, []);
+        
 
-        if (e.latlng != e.sourceTarget.latlngs[0]){
-            hiddenButtons = (e.latlng == e.sourceTarget.latlngs[e.sourceTarget.latlngs.length - 1]) ? [0, 2, 3, 4, 5] : [0, 2, 4, 5];
+        if (e.latlng != e.sourceTarget.latlngs[0]) {
+            visibleButtons = [1, 3, 8, 9];
+            // Для контекстного меню первой вершины пайпа
+            document.querySelectorAll('div.leaflet-popup-content-wrapper table')[1].hidden = (e.latlng == e.sourceTarget.latlngs[e.sourceTarget.latlngs.length - 1]) ? true : false;
         }
 
         // Все пункты контекстного меню
-        let buttons = document.querySelectorAll('div.leaflet-popup-content .popupButton');
+        let buttons = Array.from(document.querySelectorAll('div.leaflet-popup-content .popupButton'));
 
-        for (let i = 0; i < buttons.length; i++){
-            buttons[i].hidden = hiddenButtons.includes(i) ? true : false;
+        for (let i = 0; i < buttons.length; i++) {
+            buttons[i].hidden = visibleButtons.includes(i) ? false : true;
         }
+
+        // Устанавливаем правильное положение ползунка в переключателе режима
+        let checkbox = document.querySelector('input[type="checkbox"]');
+        checkbox.checked = (pipesInfo.get(edId).activity == 1);
     });
 
     // При соединении двух геообъектов пайпом

@@ -4,8 +4,8 @@ $('#map').on('click', '.initTower, .initReservoir, .initHydrant, .initStandpipe,
     // Определение типа добавляемого объекта
     let obj_type = this.className.split(' ').find(elem => elem.startsWith('init')).substr('init'.length).toLowerCase();
 
-    // Если добавляется ответвление по середине пайпа (раздлеяем его на два)
-    if (obj_type == 'branch' && edPopup.getLatLng() != pipes.get(edId).getLatLngs()[0]) {
+    // Если добавляется ответвление (или колодец) по середине пайпа (=> раздлеяем его на два)
+    if ((obj_type == 'branch' || obj_type == 'well') && edPopup.getLatLng() != pipes.get(edId).getLatLngs()[0]) {
         // Получаем координаты вершин одной и второй части пайпа
         let pipe = pipes.get(edId);
         let points = pipe.getLatLngs();
@@ -33,6 +33,7 @@ $('#map').on('click', '.initTower, .initReservoir, .initHydrant, .initStandpipe,
             new_pipe.addTo(map);
             pipes.set(id, new_pipe);
             pipesInfo.set(id++, {
+                activity: 1,
                 consumption: 0
             });
         }
@@ -94,6 +95,45 @@ function endPipeEdit() {
     edId = null;
     pipePopup = null;
 }
+
+// Включить\выключить геообъект
+$('#map').on('change', '.toggleObject', function() {
+    // Отключение пайпа
+    if (typeof this.dataset.id === 'undefined') {
+        let pipe = pipes.get(edId);
+        let info = pipesInfo.get(edId);
+
+        // Меняем цвет пайпа и информацию
+        let clr;
+        if (info.activity) {
+            info.activity = 0;
+            clr = '#f52e00';
+        }
+        else {
+            clr = '#3388ff';
+            info.activity = 1;
+        }
+
+        pipe.setStyle({
+            color: clr
+        });
+    }
+    // Отключение геообъектов
+    else {
+        let objId = Number(this.dataset.id);
+        let obj = geoObjects[geoObjects.findIndex((obj) => obj.id == objId)];
+        let info = objectsInfo.get(objId);
+
+        if (info.activity) {
+            info.activity = 0;
+            obj.value.setIcon(createIcon(obj.type, false));
+        }
+        else {
+            info.activity = 1;
+            obj.value.setIcon(createIcon(obj.type));
+        }
+    }
+});
 
 //-------------------------------------------------------------------------------------------------------------------
 
