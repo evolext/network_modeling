@@ -35,6 +35,7 @@ function initObject(type, coordinates, key = undefined) {
         value: obj
     });
     objectsInfo.set(key, {
+        activity: 1,
         consumption: 0
     });
 }

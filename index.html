@@ -157,6 +157,18 @@
 
     });
 
+    map.on('popupopen', function(e) {
+        // Обрабатываем открытие popup только у объектов
+        if (typeof e.popup._source !== 'undefined') {
+            // Идентификатор объекта, у которого открывается popup
+            let obj_id = geoObjects.find(elem => elem.value._leaflet_id == e.popup._source._leaflet_id).id;
+            
+            // Устанавилваем переключатель режима в нужное положение
+            let checkbox = document.querySelector('input[type="checkbox"]');
+            checkbox.checked = (objectsInfo.get(obj_id).activity == 1);
+        }
+    });
+
     map.on('editable:vertex:click', function (e) {
         e.vertex.continue();
     });
