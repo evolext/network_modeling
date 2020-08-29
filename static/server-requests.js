@@ -1,24 +1,25 @@
 // Отправка данных для расчета
-function sendData() {
-    fetch('/compute', {
-        method: 'POST',
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(parsingData())
-    })
-    .then((response) => response.json())
-    // Запись результатов в структуры данных
-    .then(function(obj) {
-        let help;
-        for (let [key, value] of new Map(Object.entries(obj.data))) {
-            help = pipesInfo.get(Number(key));
-            help["consumption"] = Number(value);
-        }
-        alert('Расчеты проведены успешно');
-    })
-    .catch(function(err) {
+// function sendData() {
+//     fetch('/compute', {
+//         method: 'POST',
+//         headers: { "Content-Type": "application/json" },
+//         body: JSON.stringify(parsingData())
+//     })
+//     .then((response) => response.json())
+//     // Запись результатов в структуры данных
+//     .then(function(obj) {
+//         let help;
+//         for (let [key, value] of new Map(Object.entries(obj.data))) {
+//             help = pipesInfo.get(Number(key));
+//             help["consumption"] = Number(value);
+//         }
+//         alert('Расчеты проведены успешно');
+//     })
+//     .catch(function(err) {
 
-    });
-}
+//     });
+// }
+
 
 // Отправка данных для сохранения схемы на сервере
 function saveNetwork() {
@@ -46,26 +47,34 @@ function loadNetwork() {
 
             // Добавление геообъектов
             for (let [key, value] of Object.entries(network.vertices)) {
-                initObject(value.type, value.coord, Number(key));
+                initObject(value.type, value.coord, Number(key), Number(value.info.activity));
             }
 
             // Добавление пайпов
             let new_pipe;
-            for (let [key, coords] of Object.entries(network.edges)) {
-                new_pipe = L.polyline(coords, {});
+            let pipe_color;
+            for (let [key, value] of Object.entries(network.edges)) {
+                new_pipe = L.polyline(value.coords, {});
                 new_pipe.bindPopup(
                     L.popup({
                         closeButton: true
                     }).setContent(createCtxMenu('pipe', key))
                 );
+
+                // Цвет пайпа в зависимости от его состояния
+                pipe_color = Number(value.info.activity) ? '#3388ff': '#f52e00';
+                new_pipe.setStyle({
+                    color: pipe_color
+                });
+
                 new_pipe.addTo(map);
                 pipes.set(Number(key), new_pipe);
                 pipesInfo.set(Number(key), {
+                    activity: Number(value.info.activity),
                     consumption: 0
                 });
             }
-
-            
+ 
         })
         .catch(function(err) {
 
@@ -91,9 +100,15 @@ function parsingData(mode) {
             result.info = Object.fromEntries(objectsInfo);
             break;
         case 'save':
-            // Данные о геообъектах в виде: id => { тип, кооррдинаты }
-            for (let i = 0; i < geoObjects.length; i++)
-                nodes.set(geoObjects[i].id, {type: geoObjects[i].type, coord: geoObjects[i].value.getLatLng()});
+            // Данные о геообъектах в виде: id => { тип, информация, координаты }
+            for (let i = 0; i < geoObjects.length; i++) {
+                nodes.set(geoObjects[i].id, {
+                    type: geoObjects[i].type,
+                    info: objectsInfo.get(geoObjects[i].id),
+                    coord: geoObjects[i].value.getLatLng()
+                });
+            }
+                
             // Глобальное значение id и координаты центра карты
             result.id = id;
             result.center = map.getCenter();
@@ -103,9 +118,13 @@ function parsingData(mode) {
     }
 
     // Данные о координатах точек пайпов
-    for (let [key, val] of pipes)
-        connections.set(key, val.getLatLngs());
-
+    for (let [key, val] of pipes) {
+        connections.set(key, {
+            info: pipesInfo.get(key),
+            coords: val.getLatLngs()
+        });
+    }
+        
     result.vertices = Object.fromEntries(nodes);
     result.edges = Object.fromEntries(connections);
     

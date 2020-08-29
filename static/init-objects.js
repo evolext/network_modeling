@@ -11,13 +11,13 @@ function addObjectOnPoint(type, e) {
     @coordinates=undefined - координаты центра объекта
     @key - он же id объекта, в общем случае устанавливается автоматически, но при загрузке схемы можно задать вручную
 */
-function initObject(type, coordinates, key = undefined) {
+function initObject(type, coordinates, key=undefined, mode=1) {
     let drag = false;
     if (typeof key === 'undefined')
         key = id++;
 
     // Создание кастомной иконки объекта
-    let objIcon = createIcon(type);
+    let objIcon = createIcon(type, mode);
 
     var obj = L.marker(coordinates, {
         icon: objIcon,
@@ -34,8 +34,9 @@ function initObject(type, coordinates, key = undefined) {
         type: type,
         value: obj
     });
+
     objectsInfo.set(key, {
-        activity: 1,
+        activity: mode,
         consumption: 0
     });
 }

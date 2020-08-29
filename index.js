@@ -33,12 +33,16 @@ app.get('/load', function(request, response) {
 
     // Инфомрация об объектах
     info = fs.readFileSync('networks/objects.txt').toString().split('\n');
-    for (let i = 0; i < info.length - 1; i += 3) {
+    for (let i = 0; i < info.length - 1; i += 5) {
         network.vertices[info[i]] = {
             type: info[i + 1],
+            info: {
+                activity: info[i + 2],
+                consumption: info[i + 3]
+            },
             coord: {
-                lat: Number(info[i + 2].split('\t')[0]),
-                lng: Number(info[i + 2].split('\t')[1])
+                lat: Number(info[i + 4].split('\t')[0]),
+                lng: Number(info[i + 4].split('\t')[1])
             }
         }
     }
@@ -47,11 +51,16 @@ app.get('/load', function(request, response) {
     info = fs.readFileSync('networks/pipes.txt').toString().split('\n');
     let j;
     for (let i = 0; i < info.length - 1;) {
-        network.edges[info[i]] = [];
-        j = i + 1;
+        network.edges[info[i]] = {
+            info: {
+                activity: info[i + 1]
+            },
+            coords: []
+        };
+        j = i + 2;
         while (true) {
             if (info[j] != '#') {
-                network.edges[info[i]].push({
+                network.edges[info[i]].coords.push({
                     lat: Number(info[j].split('\t')[0]),
                     lng: Number(info[j].split('\t')[1])
                 });
@@ -114,20 +123,26 @@ app.post('/compute', function(request, response) {
 
 // Получение данных для сохранения
 app.post('/save', function(request, response) {
+
     // Сохраняем глобальные переменные
     fs.writeFileSync('networks/global.txt', `${request.body.id}\n${request.body.center.lat}\t${request.body.center.lng}`);
 
     // Сохранение данных о геообъектах
     fs.writeFileSync('networks/objects.txt', '');
-    for (let [key, value] of Object.entries(request.body.vertices))
-        fs.appendFileSync('networks/objects.txt', `${key}\n${value.type}\n${value.coord.lat}\t${value.coord.lng}\n`);
+    for (let [key, value] of Object.entries(request.body.vertices)) {
+        fs.appendFileSync('networks/objects.txt', `${key}\n${value.type}\n`);
+        for (let data of Object.values(value.info)) {
+            fs.appendFileSync('networks/objects.txt', `${data}\n`);
+        }
+        fs.appendFileSync('networks/objects.txt', `${value.coord.lat}\t${value.coord.lng}\n`);
+    }
 
     // Сохранение данных о пайпах
     fs.writeFileSync('networks/pipes.txt', '');
     for (let [key, value] of Object.entries(request.body.edges)) {
-        fs.appendFileSync('networks/pipes.txt', `${key}\n`);
-        for (let i = 0; i < value.length; i++)
-            fs.appendFileSync('networks/pipes.txt', `${value[i].lat}\t${value[i].lng}\n`);
+        fs.appendFileSync('networks/pipes.txt', `${key}\n${value.info.activity}\n`);
+        for (let i = 0; i < value.coords.length; i++)
+            fs.appendFileSync('networks/pipes.txt', `${value.coords[i].lat}\t${value.coords[i].lng}\n`);
         fs.appendFileSync('networks/pipes.txt', '#\n');
     }
 

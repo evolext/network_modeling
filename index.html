@@ -5,6 +5,7 @@
     <link rel="stylesheet" type="text/css" href="style.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ==" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js" integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew==" crossorigin=""></script>
+    <script src="./leaflet-providers.js"></script>
 
     <script src="./Leaflet.Editable.js"></script>
     <script src="./init-objects.js"></script>
@@ -85,14 +86,16 @@
         editable: true
     });
     // Слой для карты
-    L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
-        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-        maxZoom: 20,
-        id: 'evolext/ckdptqjxu0k091isig2sz5xei',
-        tileSize: 512,
-        zoomOffset: -1,
-        accessToken: 'pk.eyJ1IjoiZXZvbGV4dCIsImEiOiJja2Nqeml1dTcxcGJjMnFvOGdsZGxhOHV5In0.eaJ9XIWElB4JaCejC3JpJQ'
-    }).addTo(map);
+    // L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+    //     attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+    //     maxZoom: 20,
+    //     id: 'evolext/ckdptqjxu0k091isig2sz5xei',
+    //     tileSize: 512,
+    //     zoomOffset: -1,
+    //     accessToken: 'pk.eyJ1IjoiZXZvbGV4dCIsImEiOiJja2Nqeml1dTcxcGJjMnFvOGdsZGxhOHV5In0.eaJ9XIWElB4JaCejC3JpJQ'
+    // }).addTo(map);
+    
+    L.tileLayer.provider('OpenStreetMap.Mapnik').addTo(map);
     // Добавление кнопки экспорта карты
     L.control.bigImage({position: 'topright'}).addTo(map);
 
