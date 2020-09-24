@@ -141,23 +141,25 @@
             this._container.appendChild(this._loader);
         },
 
+        // Функция получения существующих слоев
         _getLayers: function (resolve) {
+            // self - это control-панель распечатки изображения
             let self = this;
             let promises = [];
+
+            // Применение указанной функции ко всем слоям карты
             self._map.eachLayer(function (layer) {
                 promises.push(new Promise((new_resolve) => {
                     try {
                         if (layer instanceof L.Marker && layer._icon && layer._icon.src) {
-                            self._getMarkerLayer(layer, new_resolve)
+                            // Если layer - кастомный маркер
+                            self._getMarkerLayer(layer, new_resolve);
                         } else if (layer instanceof L.TileLayer) {
+                            // Если layer - слой карты, обычно один раз находится
                             self._getTileLayer(layer, new_resolve);
-                        } else if (layer instanceof L.Circle) {
-                            if (!self.circles[layer._leaflet_id]) {
-                                self.circles[layer._leaflet_id] = layer;
-                            }
-                            new_resolve();
                         } else if (layer instanceof L.Path) {
                             self._getPathLayer(layer, new_resolve);
+                            console.log("есть пути на карте");
                         } else {
                             new_resolve();
                         }
@@ -168,6 +170,7 @@
                 }));
             });
 
+            // Выполнится в случае, когда все promices выполнятся
             Promise.all(promises).then(() => {
                 resolve()
             });
@@ -275,6 +278,7 @@
             resolve();
         },
 
+        // Функция изменения масштаба
         _changeScale: function (scale) {
             if (!scale || scale <= 1) return 0;
 
@@ -354,27 +358,33 @@
         },
 
         _print: function () {
+            // self - это control-панель распечатки изображения
             let self = this;
 
             self.tilesImgs = {};
             self.markers = {};
             self.path = {};
-            self.circles = {};
 
             // Размер полотна с картой (= размер div контейнера)
             let dimensions = self._map.getSize();
 
+            // Получаем текущее значение zoom карты
             self.zoom = self._map.getZoom();
+            // Получаем пиксельные границы текущей карты (внутри div-контейнера)
             self.bounds = self._map.getPixelBounds();
-            console.log(self.bounds);
+            
 
+            // Создаем элемент canvas, задаем его размер, получаем контекст для дальнейшего рисования
             self.canvas = document.createElement('canvas');
             self.canvas.width = dimensions.x;
             self.canvas.height = dimensions.y;
             self.ctx = self.canvas.getContext('2d');
 
-            // Получение значения масштаба из поля ввода и изменение размеров canvas
-            this._changeScale(document.getElementById('scale').value);
+
+            // Получение значения масштаба из поля ввода
+            let scale = document.getElementById('scale').value;
+            // Изменение масштаба на укзанную величину
+            this._changeScale(scale);
 
             let promise = new Promise(function (resolve, reject) {
                 self._getLayers(resolve);
@@ -390,9 +400,6 @@
                     }
                     for (const [key, value] of Object.entries(self.markers)) {
                         self.ctx.drawImage(value.img, value.x, value.y);
-                    }
-                    for (const [key, value] of Object.entries(self.circles)) {
-                        self._drawCircle(value);
                     }
                     resolve();
                 }));
