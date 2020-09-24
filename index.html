@@ -19,13 +19,13 @@
 <body>
     <div id="map"></div>
     <div id="toolsPanel">
-        <table>
+        <table id="buttonsOfAdding">
             <caption>Добавить объект</caption>
             <tr>
                 <td><input type="button" value="Источник" id="buttonAddSource"/></td>
             </tr>
             <tr>
-                <td><input type="button" value="Контррезервуар" id="buttonAddReservoir"/></td>
+                <td><input type="button" value="Контррезервуар" id="buttonAddReservoir"></td>
             </tr>
             <tr>
                 <td><input type="button" value="Водонапорная башня" id="buttonAddTower"/></td>
@@ -46,14 +46,14 @@
                 <td><input type="button" value="Потребитель" id="buttonAddConsumer"/></td>
             </tr>
         </table>
-        <table>
+        <table id="buttonsOfCalculation">
             <caption>Выполнить расчеты</caption>
             <tr>
                 <td><input type="button" value="Определить расход"></td>
                 <!-- <td><input type="button" value="Определить расход" onclick="sendData()"></td> -->
             </tr>
         </table>
-        <table>
+        <table id="buttonsOfControlSchema">
             <caption>Схема</caption>
             <tr>
                 <td><input type="button" value="Сохранить" onclick="saveNetwork()"></td>
@@ -81,11 +81,14 @@
 
     // Создание объекта карты
     var map = L.map('map', {
-        center: [54.99465329664577, 82.92184352874757],
-        zoom: 15,
+        attributionControl: false,
+        zoomControl: false,
+        center: [55.170240841245324, 79.76739406585695],
+        zoom: 14,
         editable: true
     });
-    // Слой для карты
+
+    // // Слой для карты
     // L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
     //     attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
     //     maxZoom: 20,
@@ -94,13 +97,20 @@
     //     zoomOffset: -1,
     //     accessToken: 'pk.eyJ1IjoiZXZvbGV4dCIsImEiOiJja2Nqeml1dTcxcGJjMnFvOGdsZGxhOHV5In0.eaJ9XIWElB4JaCejC3JpJQ'
     // }).addTo(map);
-    
-    L.tileLayer.provider('OpenStreetMap.Mapnik').addTo(map);
+
+    L.tileLayer(
+        'http://vec{s}.maps.yandex.net/tiles?l=map&v=4.55.2&z={z}&x={x}&y={y}&scale=2&lang=ru_RU', {
+            subdomains: ['01', '02', '03', '04'],
+            attribution: '<a http="yandex.ru" target="_blank">Яндекс</a>',
+            reuseTiles: true,
+            updateWhenIdle: false
+    }).addTo(map);
+    //L.tileLayer.provider('OpenStreetMap.Mapnik').addTo(map);
     // Добавление кнопки экспорта карты
     L.control.bigImage({position: 'topright'}).addTo(map);
 
     // Назначение функции добавления объекта на карту по клику
-    document.getElementById('toolsPanel').querySelectorAll('input').forEach((item) => item.addEventListener('click', function(e) {
+    document.getElementById('toolsPanel').querySelectorAll('#buttonsOfAdding input').forEach((item) => item.addEventListener('click', function(e) {
         // Отключаем обработчики, включенные ранее        
         map.off('click');
         // Определеяем тип добавляемого объекта, извлекаем его с помощью "отсекания" строки buttonAdd от id кнопки
@@ -261,6 +271,14 @@
             pipePopup = null;
         }
     });
+
+
+    function printMap() {
+        domtoimage.toBlob(document.getElementById('map'))
+            .then(function (blob) {
+                window.saveAs(blob, 'my-node.png');
+            });
+    }
 </script>
 <script src="/pipe-popup-events.js"></script>
 </html>

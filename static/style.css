@@ -43,7 +43,6 @@ td {
 /* Стили контейнера с карторй и панели управления */
 
 #map {
-    border: 1px solid black;
     height: 800px;
     width: 80%;
     margin: 0;

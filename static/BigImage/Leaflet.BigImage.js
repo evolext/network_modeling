@@ -1,8 +1,3 @@
-/*
- Leaflet.BigImage (https://github.com/pasichnykvasyl/Leaflet.BigImage).
- (c) 2020, Vasyl Pasichnyk, pasichnykvasyl (Oswald)
-*/
-
 (function (factory, window) {
 
     // define an AMD module that relies on 'leaflet'
@@ -366,16 +361,19 @@
             self.path = {};
             self.circles = {};
 
+            // Размер полотна с картой (= размер div контейнера)
             let dimensions = self._map.getSize();
 
             self.zoom = self._map.getZoom();
             self.bounds = self._map.getPixelBounds();
+            console.log(self.bounds);
 
             self.canvas = document.createElement('canvas');
             self.canvas.width = dimensions.x;
             self.canvas.height = dimensions.y;
             self.ctx = self.canvas.getContext('2d');
 
+            // Получение значения масштаба из поля ввода и изменение размеров canvas
             this._changeScale(document.getElementById('scale').value);
 
             let promise = new Promise(function (resolve, reject) {
