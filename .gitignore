@@ -1,6 +1,7 @@
 /static/icons
 /static/Leaflet.Editable.js
 /static/leaflet-providers.js
+/static/layer
 package-lock.json
 /node_modules
 /calculation\ programs/*

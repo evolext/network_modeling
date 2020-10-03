@@ -141,7 +141,7 @@
             this._container.appendChild(this._loader);
         },
 
-        // Функция получения существующих слоев
+        // Функция получения всех существующих слоев
         _getLayers: function (resolve) {
             // self - это control-панель распечатки изображения
             let self = this;
@@ -151,15 +151,8 @@
             self._map.eachLayer(function (layer) {
                 promises.push(new Promise((new_resolve) => {
                     try {
-                        if (layer instanceof L.Marker && layer._icon && layer._icon.src) {
-                            // Если layer - кастомный маркер
-                            self._getMarkerLayer(layer, new_resolve);
-                        } else if (layer instanceof L.TileLayer) {
-                            // Если layer - слой карты, обычно один раз находится
+                        if (layer instanceof L.TileLayer) {
                             self._getTileLayer(layer, new_resolve);
-                        } else if (layer instanceof L.Path) {
-                            self._getPathLayer(layer, new_resolve);
-                            console.log("есть пути на карте");
                         } else {
                             new_resolve();
                         }
@@ -176,11 +169,17 @@
             });
         },
 
+        // Получить слой карты (функция вызывается всего один раз, т.к. слой карты один)
+        // @layer - сам объект слоя
         _getTileLayer: function (layer, resolve) {
+            // self - это control-панель распечатки изображения
             let self = this;
 
             self.tiles = [];
+            // Получаем размер сетки слоя (обычно это 256)
             self.tileSize = layer._tileSize.x;
+
+            // Считаем число клеток сетки, помещающихся в границах экрана
             self.tileBounds = L.bounds(self.bounds.min.divideBy(self.tileSize)._floor(), self.bounds.max.divideBy(self.tileSize)._floor());
 
             for (let j = self.tileBounds.min.y; j <= self.tileBounds.max.y; j++)
@@ -206,6 +205,9 @@
             });
         },
 
+        //  @tilePoint - масштабированная
+        //  @tilePos - позиция с
+        //  @layer - сам слой
         _loadTile: function (tilePoint, tilePos, layer, resolve) {
             let self = this;
             let imgIndex = tilePoint.x + ':' + tilePoint.y + ':' + self.zoom;
@@ -216,66 +218,6 @@
                 resolve();
             };
             image.src = layer.getTileUrl(tilePoint);
-        },
-
-        _getMarkerLayer: function (layer, resolve) {
-            let self = this;
-
-            if (self.markers[layer._leaflet_id]) {
-                resolve();
-                return;
-            }
-
-            let pixelPoint = self._map.project(layer._latlng);
-            pixelPoint = pixelPoint.subtract(new L.Point(self.bounds.min.x, self.bounds.min.y));
-
-            if (layer.options.icon && layer.options.icon.options && layer.options.icon.options.iconAnchor) {
-                pixelPoint.x -= layer.options.icon.options.iconAnchor[0];
-                pixelPoint.y -= layer.options.icon.options.iconAnchor[1];
-            }
-
-            if (!self._pointPositionIsNotCorrect(pixelPoint)) {
-                let image = new Image();
-                image.crossOrigin = 'Anonymous';
-                image.onload = function () {
-                    self.markers[layer._leaflet_id] = { img: image, x: pixelPoint.x - (this.width / 2), y: pixelPoint.y - (this.height / 2) };
-                    resolve();
-                };
-                image.src = layer._icon.src;
-            } else {
-                resolve();
-            }
-        },
-
-        _pointPositionIsNotCorrect: function (point) {
-            return (point.x < 0 || point.y < 0 || point.x > this.canvas.width || point.y > this.canvas.height);
-        },
-
-        _getPathLayer: function (layer, resolve) {
-            let self = this;
-
-            let correct = 0;
-            let parts = [];
-
-            if (layer._mRadius || !layer._latlngs) {
-                resolve();
-                return;
-            }
-
-            let latlngs = layer.options.fill ? layer._latlngs[0] : layer._latlngs;
-            latlngs.forEach((latLng) => {
-                let pixelPoint = self._map.project(latLng);
-                pixelPoint = pixelPoint.subtract(new L.Point(self.bounds.min.x, self.bounds.min.y));
-                parts.push(pixelPoint);
-                if (pixelPoint.x < self.canvas.width && pixelPoint.y < self.canvas.height) correct = 1;
-            });
-
-            if (correct) self.path[layer._leaflet_id] = {
-                parts: parts,
-                closed: layer.options.fill,
-                options: layer.options
-            };
-            resolve();
         },
 
         // Функция изменения масштаба
@@ -294,69 +236,6 @@
             this.canvas.height *= scale;
         },
 
-        _drawPath: function (value) {
-            let self = this;
-
-            self.ctx.beginPath();
-            let count = 0;
-            let options = value.options;
-            value.parts.forEach((point) => {
-                self.ctx[count++ ? 'lineTo' : 'moveTo'](point.x, point.y);
-            });
-
-            if (value.closed) self.ctx.closePath();
-
-            this._feelPath(options);
-        },
-
-        _drawCircle: function (layer, resolve) {
-
-            if (layer._empty()) {
-                return;
-            }
-
-            let point = this._map.project(layer._latlng);
-            point = point.subtract(new L.Point(this.bounds.min.x, this.bounds.min.y));
-
-            let r = Math.max(Math.round(layer._radius), 1),
-                s = (Math.max(Math.round(layer._radiusY), 1) || r) / r;
-
-            if (s !== 1) {
-                this.ctx.save();
-                this.scale(1, s);
-            }
-
-            this.ctx.beginPath();
-            this.ctx.arc(point.x, point.y / s, r, 0, Math.PI * 2, false);
-
-            if (s !== 1) {
-                this.ctx.restore();
-            }
-
-            this._feelPath(layer.options);
-        },
-
-        _feelPath: function (options) {
-
-            if (options.fill) {
-                this.ctx.globalAlpha = options.fillOpacity;
-                this.ctx.fillStyle = options.fillColor || options.color;
-                this.ctx.fill(options.fillRule || 'evenodd');
-            }
-
-            if (options.stroke && options.weight !== 0) {
-                if (this.ctx.setLineDash) {
-                    this.ctx.setLineDash(options && options._dashArray || []);
-                }
-                this.ctx.globalAlpha = options.opacity;
-                this.ctx.lineWidth = options.weight;
-                this.ctx.strokeStyle = options.color;
-                this.ctx.lineCap = options.lineCap;
-                this.ctx.lineJoin = options.lineJoin;
-                this.ctx.stroke();
-            }
-        },
-
         _print: function () {
             // self - это control-панель распечатки изображения
             let self = this;
@@ -372,7 +251,6 @@
             self.zoom = self._map.getZoom();
             // Получаем пиксельные границы текущей карты (внутри div-контейнера)
             self.bounds = self._map.getPixelBounds();
-            
 
             // Создаем элемент canvas, задаем его размер, получаем контекст для дальнейшего рисования
             self.canvas = document.createElement('canvas');
@@ -384,22 +262,17 @@
             // Получение значения масштаба из поля ввода
             let scale = document.getElementById('scale').value;
             // Изменение масштаба на укзанную величину
-            this._changeScale(scale);
+            //this._changeScale(scale);
 
             let promise = new Promise(function (resolve, reject) {
                 self._getLayers(resolve);
             });
 
+            // Когда получим все слои, то рисуем их на полотне
             promise.then(() => {
                 return new Promise(((resolve, reject) => {
                     for (const [key, value] of Object.entries(self.tilesImgs)) {
                         self.ctx.drawImage(value.img, value.x, value.y, self.tileSize, self.tileSize);
-                    }
-                    for (const [key, value] of Object.entries(self.path)) {
-                        self._drawPath(value);
-                    }
-                    for (const [key, value] of Object.entries(self.markers)) {
-                        self.ctx.drawImage(value.img, value.x, value.y);
                     }
                     resolve();
                 }));

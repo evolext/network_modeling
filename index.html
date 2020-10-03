@@ -83,7 +83,7 @@
     var map = L.map('map', {
         attributionControl: false,
         zoomControl: false,
-        center: [55.170240841245324, 79.76739406585695],
+        center: [54.812074821879456, 82.92755137261244],
         zoom: 14,
         editable: true
     });
@@ -98,6 +98,7 @@
     //     accessToken: 'pk.eyJ1IjoiZXZvbGV4dCIsImEiOiJja2Nqeml1dTcxcGJjMnFvOGdsZGxhOHV5In0.eaJ9XIWElB4JaCejC3JpJQ'
     // }).addTo(map);
 
+    // Подложка от яндекса
     L.tileLayer(
         'http://vec{s}.maps.yandex.net/tiles?l=map&v=4.55.2&z={z}&x={x}&y={y}&scale=2&lang=ru_RU', {
             subdomains: ['01', '02', '03', '04'],
@@ -105,9 +106,18 @@
             reuseTiles: true,
             updateWhenIdle: false
     }).addTo(map);
-    //L.tileLayer.provider('OpenStreetMap.Mapnik').addTo(map);
+
+    // Своя кастомная подложка
+    // L.tileLayer('layer/{z}-{y}x{x}.png',{
+    //     minZoom: 2,
+    //     maxZoom: 7,
+    //     attribution: '',
+    //     tms: false
+    // }).addTo(map);
+
+    
     // Добавление кнопки экспорта карты
-    L.control.bigImage({position: 'topright'}).addTo(map);
+    L.control.bigImage({position: 'topleft'}).addTo(map);
 
     // Назначение функции добавления объекта на карту по клику
     document.getElementById('toolsPanel').querySelectorAll('#buttonsOfAdding input').forEach((item) => item.addEventListener('click', function(e) {
