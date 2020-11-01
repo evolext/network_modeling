@@ -42,22 +42,26 @@ td {
 
 /* Стили контейнера с карторй и панели управления */
 
+#wrapper {
+    display: flex;
+}
+
 #map {
     height: 800px;
     width: 80%;
     margin: 0;
-    float: left;
 }
 
 #toolsPanel {
-    /* border: 1px solid black; */
-    margin: 0;
+    margin-left: 20px;
+    width: 15%;
 }
 
 #toolsPanel table {
     border-collapse: separate;
     border-spacing: 2px 4px;
-    width: 14%;
+    margin: 10px 0 40px;
+    width: 100%;
 }
 
 #toolsPanel input {

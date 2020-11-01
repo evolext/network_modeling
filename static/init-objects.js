@@ -5,7 +5,6 @@ function addObjectOnPoint(type, e) {
     map.off('click');
 }
 
-
 /* Создание геообъекта
     @type - тип геообъекта
     @coordinates=undefined - координаты центра объекта
@@ -121,7 +120,7 @@ function createIcon(type, mode=true) {
 }
 
 // Инициализация пайпа
-function initPipe(firstPoint) {
+function initPipe(firstPoint) {    
     // Завершаем редактирование предыдущего пайпа (если есть)
     if (polylineEditor) {
         let old_pipe = pipes.get(edId);

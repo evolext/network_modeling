@@ -5,18 +5,26 @@
     <link rel="stylesheet" type="text/css" href="style.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ==" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js" integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew==" crossorigin=""></script>
+    
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    
+    <!-- Для кастомных подложек -->
     <script src="./leaflet-providers.js"></script>
 
+    <!-- Модуль для редактирования примитивов-->
     <script src="./Leaflet.Editable.js"></script>
+
+    <!-- Свои модули -->
     <script src="./init-objects.js"></script>
     <script src="./server-requests.js"></script>
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-
+    <!-- модуль BigImage -->
     <link rel="stylesheet" href="BigImage/Leaflet.BigImage.css">
     <script src="BigImage/Leaflet.BigImage.js"></script>
 </head>
 <body>
+    <div id="wrapper">
     <div id="map"></div>
     <div id="toolsPanel">
         <table id="buttonsOfAdding">
@@ -47,9 +55,9 @@
             </tr>
         </table>
         <table id="buttonsOfCalculation">
-            <caption>Выполнить расчеты</caption>
+            <caption>Выполнение расчетов</caption>
             <tr>
-                <td><input type="button" value="Определить расход"></td>
+                <td><input type="button" value="Расход на участках"></td>
                 <!-- <td><input type="button" value="Определить расход" onclick="sendData()"></td> -->
             </tr>
         </table>
@@ -61,7 +69,11 @@
             <tr>
                 <td><input type="button" value="Загрузить" onclick="loadNetwork()"></td>
             </tr>
+            <tr>
+                <td><input type="button" value="Выделить область на экспорт" onclick="highlightArea()"></td>
+            </tr>
         </table>
+    </div>
     </div>
 </body>
 <script>
@@ -71,6 +83,7 @@
     var objectsInfo = new Map();
     var pipesInfo = new Map();
     var polylineEditor;
+    var area;
 
     // Идентификаторр редактируемого пайпа
     var edId = null;
@@ -83,39 +96,25 @@
     var map = L.map('map', {
         attributionControl: false,
         zoomControl: false,
-        center: [54.812074821879456, 82.92755137261244],
+        center: [55.295244847326224, 79.67630911719661],
         zoom: 14,
-        editable: true
+        editable: true,
+        drawControl: true
     });
 
-    // // Слой для карты
-    // L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
-    //     attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-    //     maxZoom: 20,
-    //     id: 'evolext/ckdptqjxu0k091isig2sz5xei',
-    //     tileSize: 512,
-    //     zoomOffset: -1,
-    //     accessToken: 'pk.eyJ1IjoiZXZvbGV4dCIsImEiOiJja2Nqeml1dTcxcGJjMnFvOGdsZGxhOHV5In0.eaJ9XIWElB4JaCejC3JpJQ'
-    // }).addTo(map);
-
-    // Подложка от яндекса
-    L.tileLayer(
-        'http://vec{s}.maps.yandex.net/tiles?l=map&v=4.55.2&z={z}&x={x}&y={y}&scale=2&lang=ru_RU', {
-            subdomains: ['01', '02', '03', '04'],
-            attribution: '<a http="yandex.ru" target="_blank">Яндекс</a>',
-            reuseTiles: true,
-            updateWhenIdle: false
+    // Кастомный классический слой
+    L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+        maxZoom: 20,
+        id: 'evolext/ckdptqjxu0k091isig2sz5xei',
+        tileSize: 512,
+        zoomOffset: -1,
+        accessToken: 'pk.eyJ1IjoiZXZvbGV4dCIsImEiOiJja2Nqeml1dTcxcGJjMnFvOGdsZGxhOHV5In0.eaJ9XIWElB4JaCejC3JpJQ'
     }).addTo(map);
 
-    // Своя кастомная подложка
-    // L.tileLayer('layer/{z}-{y}x{x}.png',{
-    //     minZoom: 2,
-    //     maxZoom: 7,
-    //     attribution: '',
-    //     tms: false
-    // }).addTo(map);
+    // Более "ландшафтный" слой
+    //L.tileLayer.provider('OpenStreetMap.Mapnik').addTo(map);
 
-    
     // Добавление кнопки экспорта карты
     L.control.bigImage({position: 'topleft'}).addTo(map);
 
@@ -127,7 +126,8 @@
         let obj_type = this.id.slice('buttonAdd'.length).toLowerCase();
         map.on('click', addObjectOnPoint.bind(null, obj_type));
     }));
-        
+
+    
     $('#map').on('click', '.startPipe', function(e) {
         let objId = Number(e.target.dataset.id);
         let index = geoObjects.findIndex((obj) => obj.id == objId);
@@ -181,14 +181,16 @@
     });
 
     map.on('popupopen', function(e) {
-        // Обрабатываем открытие popup только у объектов
-        if (typeof e.popup._source !== 'undefined') {
-            // Идентификатор объекта, у которого открывается popup
-            let obj_id = geoObjects.find(elem => elem.value._leaflet_id == e.popup._source._leaflet_id).id;
-            
-            // Устанавилваем переключатель режима в нужное положение
+        if (typeof e.popup._source === 'undefined')
+            return;
+
+        // Проверяем, является ли геообъектом (только у них обрабатываем)
+        let obj = geoObjects.find(elem => elem.value._leaflet_id == e.popup._source._leaflet_id);
+        if (typeof obj !== 'undefined') {
+            // Устанавилваем переключатель режима в нужное положение (если объект имеет два режима)
             let checkbox = document.querySelector('input[type="checkbox"]');
-            checkbox.checked = (objectsInfo.get(obj_id).activity == 1);
+            if (checkbox)
+                checkbox.checked = (objectsInfo.get(obj.id).activity == 1);
         }
     });
 
@@ -282,12 +284,26 @@
         }
     });
 
+    // Выделение области при экспорте карты
+    function highlightArea() {
+        map.on('click', function (e) {
+            // Координаты точки, куда был клик пользователя
+            let bounds = L.latLngBounds(e.latlng,   map.getCenter());
 
-    function printMap() {
-        domtoimage.toBlob(document.getElementById('map'))
-            .then(function (blob) {
-                window.saveAs(blob, 'my-node.png');
-            });
+            area = L.rectangle(bounds, {
+                color: '#f10e0e',
+                weight: 1,
+                fillOpacity: 0
+            }).addTo(map);
+
+            let rectEditor = area.enableEdit();
+            
+            map.off('click');
+        });
+    }
+
+    function foo() {
+        
     }
 </script>
 <script src="/pipe-popup-events.js"></script>

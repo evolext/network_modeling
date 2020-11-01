@@ -237,55 +237,83 @@
         },
 
         _print: function () {
+
             // self - это control-панель распечатки изображения
             let self = this;
-
             self.tilesImgs = {};
             self.markers = {};
             self.path = {};
 
-            // Размер полотна с картой (= размер div контейнера)
-            let dimensions = self._map.getSize();
+            map.setZoom(17);
 
-            // Получаем текущее значение zoom карты
-            self.zoom = self._map.getZoom();
-            // Получаем пиксельные границы текущей карты (внутри div-контейнера)
-            self.bounds = self._map.getPixelBounds();
+            setTimeout(() => {
+                // Получаем координаты рамки, пространство внутри которой будем экспортировать
+                self.topLeft = area.getLatLngs()[0][1];
+                self.bottomRight = area.getLatLngs()[0][3];
 
-            // Создаем элемент canvas, задаем его размер, получаем контекст для дальнейшего рисования
-            self.canvas = document.createElement('canvas');
-            self.canvas.width = dimensions.x;
-            self.canvas.height = dimensions.y;
-            self.ctx = self.canvas.getContext('2d');
+                let points = [map.project(self.topLeft, 17), map.project(self.bottomRight, 17)];
+
+                // Округляем координаты двух точек
+                points[0].x = Math.floor(points[0].x);
+                points[0].y = Math.floor(points[0].y);
+
+                points[1].x = Math.ceil(points[1].x);
+                points[1].y = Math.ceil(points[1].y);
+
+                // Вычисляем размерность полотна
+                let dimensions = L.point(points[1].x - points[0].x, points[1].y - points[0].y);
+
+                // При каком значении zoom делаем импорт
+                self.zoom = 17;
+
+                self.bounds = L.bounds(L.point(points[0].x, points[0].y), L.point(points[1].x, points[1].y));
 
 
-            // Получение значения масштаба из поля ввода
-            let scale = document.getElementById('scale').value;
-            // Изменение масштаба на укзанную величину
-            //this._changeScale(scale);
+                // Размер полотна с картой (= размер div контейнера)
+                //let dimensions = self._map.getSize();
 
-            let promise = new Promise(function (resolve, reject) {
-                self._getLayers(resolve);
-            });
+                // Получаем текущее значение zoom карты
+                //self.zoom = self._map.getZoom();
+                // Получаем пиксельные границы текущей карты (внутри div-контейнера)
+                //self.bounds = self._map.getPixelBounds();
 
-            // Когда получим все слои, то рисуем их на полотне
-            promise.then(() => {
-                return new Promise(((resolve, reject) => {
-                    for (const [key, value] of Object.entries(self.tilesImgs)) {
-                        self.ctx.drawImage(value.img, value.x, value.y, self.tileSize, self.tileSize);
-                    }
-                    resolve();
-                }));
-            }).then(() => {
-                self.canvas.toBlob(function (blob) {
-                    let link = document.createElement('a');
-                    link.download = "схема.png";
-                    link.href = URL.createObjectURL(blob);
-                    link.click();
+                // Создаем элемент canvas, задаем его размер, получаем контекст для дальнейшего рисования
+                self.canvas = document.createElement('canvas');
+                self.canvas.width = dimensions.x;
+                self.canvas.height = dimensions.y;
+                self.ctx = self.canvas.getContext('2d');
+
+
+                // Получение значения масштаба из поля ввода
+                //let scale = document.getElementById('scale').value;
+                // Изменение масштаба на укзанную величину
+                //this._changeScale(scale);
+
+                let promise = new Promise(function (resolve, reject) {
+                    self._getLayers(resolve);
                 });
-                self._containerParams.classList.remove('print-disabled');
-                self._loader.style.display = 'none';
-            });
+
+                // Когда получим все слои, то рисуем их на полотне
+                promise.then(() => {
+                    return new Promise(((resolve, reject) => {
+                        for (const [key, value] of Object.entries(self.tilesImgs)) {
+                            self.ctx.drawImage(value.img, value.x, value.y, self.tileSize, self.tileSize);
+                        }
+                        resolve();
+                    }));
+                }).then(() => {
+                    self.canvas.toBlob(function (blob) {
+                        let link = document.createElement('a');
+                        link.download = "схема.png";
+                        link.href = URL.createObjectURL(blob);
+                        link.click();
+                    });
+                    self._containerParams.classList.remove('print-disabled');
+                    self._loader.style.display = 'none';
+                });
+            }, 1000);
+
+            
         }
     });
 
