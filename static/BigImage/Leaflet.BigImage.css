@@ -16,48 +16,22 @@
 }
 
 #print-params  {
+    display: flex;
+    flex-direction: column;
     width: 100%;
     text-align: center;
-}
-
-#print-params > h6 {
-    text-align: center;
-    margin-top: 10px;
-    margin-bottom: 5px;
-    font-size: 1rem;
-    font-family: inherit;
-    font-weight: 500;
-    color: inherit;
-}
-
-#print-params > input[type="number"] {
-    border: 1px solid rgb(153, 153, 153);
-    border-radius: 4px;
 }
 
 .close {
     color: rgba(0, 0, 0, 0.8);
     font-size: 20px;
     font-weight: bold;
-    position: absolute;
-    top: 0;
-    right: 5px;
-}
-
-.close:hover,
-.close:focus {
-    color: #000000;
-    text-decoration: none;
+    position: relative;
+    width: 10px;
+    height: 10px;
+    left: 95%;
+    top: -10px;
     cursor: pointer;
-}
-
-.operation-btn {
-    text-decoration: none;
-    display: inline !important;
-    padding-right: 3px;
-    vertical-align: middle;
-    font-size: 20px;
-    margin: 3px;
 }
 
 .see-btn:before {
@@ -107,18 +81,11 @@
 .download-button {
     font-family: sans-serif;
     display: inline-block;
-    font-size: 1em;
+    font-size: 12px;
     text-align: center;
     padding: 0.3em 0.8em;
-    background: linear-gradient(45deg, #2b71ad, #0c7162);
-    color: #fff;
-    box-shadow: 0 0.4em 0.4em rgba(0, 0, 0, 0.25);
+    background: rgb(199, 199, 199);
     border-radius: 0.4em;
-    transition: box-shadow 0.2s ease-in-out;
     cursor: pointer;
     margin-top: 5px;
-}
-
-.download-button:hover {
-    box-shadow: 0 0.1em 0.25em rgba(0,0,0,0.25);
 }

@@ -69,9 +69,6 @@
             <tr>
                 <td><input type="button" value="Загрузить" onclick="loadNetwork()"></td>
             </tr>
-            <tr>
-                <td><input type="button" value="Выделить область на экспорт" onclick="highlightArea()"></td>
-            </tr>
         </table>
     </div>
     </div>
@@ -283,24 +280,6 @@
             pipePopup = null;
         }
     });
-
-    // Выделение области при экспорте карты
-    function highlightArea() {
-        map.on('click', function (e) {
-            // Координаты точки, куда был клик пользователя
-            let bounds = L.latLngBounds(e.latlng,   map.getCenter());
-
-            area = L.rectangle(bounds, {
-                color: '#f10e0e',
-                weight: 1,
-                fillOpacity: 0
-            }).addTo(map);
-
-            let rectEditor = area.enableEdit();
-            
-            map.off('click');
-        });
-    }
 </script>
 <script src="/pipe-popup-events.js"></script>
 </html>
