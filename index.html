@@ -18,6 +18,8 @@
     <!-- Свои модули -->
     <script src="./init-objects.js"></script>
     <script src="./server-requests.js"></script>
+    <script src="./panel-buttons.js"></script>
+
 
     <!-- модуль BigImage -->
     <link rel="stylesheet" href="BigImage/Leaflet.BigImage.css">
@@ -27,47 +29,60 @@
     <div id="wrapper">
     <div id="map"></div>
     <div id="toolsPanel">
-        <table id="buttonsOfAdding">
+        <table id="addingNodes" hidden>
             <caption>Добавить объект</caption>
             <tr>
-                <td><input type="button" value="Источник" id="buttonAddSource"/></td>
+                <td><button id="buttonAddSource"><label>Источник</label></button></td>
             </tr>
             <tr>
-                <td><input type="button" value="Контррезервуар" id="buttonAddReservoir"></td>
+                <td><button id="buttonAddReservoir"><label>Контррезервуар</label></button></td>
             </tr>
             <tr>
-                <td><input type="button" value="Водонапорная башня" id="buttonAddTower"/></td>
+                <td><button id="buttonAddTower"><label>Водонапорная башня</label></button></td>
             </tr>
             <tr>
-                <td><input type="button" value="Колонка" id="buttonAddStandpipe"/></td>
+                <td><button id="buttonAddStandpipe"><label>Колонка</label></button></td>
             </tr>
             <tr>
-                <td><input type="button" value="Гидрант" id="buttonAddHydrant"/></td>
+                <td><button id="buttonAddHydrant"><label>Гидрант</label></button></td>
             </tr>
             <tr>
-                <td><input type="button" value="Водопроводный колодец" id="buttonAddWell"/></td>
+                <td><button id="buttonAddWell"><label>Водопроводный колодец</label></button></td>
             </tr>
             <tr>
-                <td><input type="button" value="Разветвление" id="buttonAddBranch"/></td>
+                <td><button id="buttonAddBranch"><label>Разветвление</label></button></td>
             </tr>
             <tr>
-                <td><input type="button" value="Потребитель" id="buttonAddConsumer"/></td>
+                <td><button id="buttonAddConsumer"><label>Потребитель</label></button></td>
             </tr>
         </table>
-        <table id="buttonsOfCalculation">
+        <!-- Панель для выполнения расчетов на сети (пока будет недоступна) -->
+        <!-- <table id="buttonsOfCalculation">
             <caption>Выполнение расчетов</caption>
             <tr>
                 <td><input type="button" value="Расход на участках"></td>
-                <!-- <td><input type="button" value="Определить расход" onclick="sendData()"></td> -->
+                <td><input type="button" value="Определить расход" onclick="sendData()"></td>
             </tr>
-        </table>
+        </table> -->
         <table id="buttonsOfControlSchema">
             <caption>Схема</caption>
             <tr>
-                <td><input type="button" value="Сохранить" onclick="saveNetwork()"></td>
+                <td><button id="saveNetwork" hidden>Сохранить</button></td> <!-- onclick="saveNetwork()" -->
             </tr>
             <tr>
-                <td><input type="button" value="Загрузить" onclick="loadNetwork()"></td>
+                <td><button id="loadNetwork">Загрузить</button></td> <!-- onclick="loadNetwork() -->
+            </tr>
+            <tr>
+                <td><button id="createNetwork" onclick="createNetwork(cancel=false)">Создать новую</button></td>
+            </tr>
+            <tr>
+                <td><button id="createHeatNetwork" onclick="createHeatNetwork()" hidden>Схема теплоснабжения</button></td>
+            </tr>
+            <tr>
+                <td><button id="createWaterNetwork" onclick="createWaterNetwork()" hidden>Схема водоснабжения</button></td>
+            </tr>
+            <tr>
+                <td><button id="cancelCreateNetwork" onclick="createNetwork(cancel=true)" hidden>Отменить</button></td>
             </tr>
         </table>
     </div>

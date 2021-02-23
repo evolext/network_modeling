@@ -64,12 +64,13 @@ td {
     width: 100%;
 }
 
-#toolsPanel input {
+#toolsPanel button {
     font-size: 1.1em;
     width: 100%;
     cursor: pointer;
     background-repeat: no-repeat;
     text-align: center;
+    white-space: nowrap;
 }
 
 #buttonAddSource {
@@ -105,6 +106,10 @@ td {
     background-image: url('icons/active/well.png');
     background-position-y: 2px;
     background-position-x: 6px;
+}
+
+#buttonAddWell label{
+    padding-left: 20px;
 }
 
 #buttonAddBranch {
