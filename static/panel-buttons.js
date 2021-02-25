@@ -17,12 +17,20 @@ function createNetwork(cancel=false) {
     }
 }
 
-function createWaterNetwork() {
+// @water - флаг инициализации инструментов для отрисовки схемы водоснбажения (в случае true)
+//          и для отрисовки схемы теплоснабжения (в случае false)                
+function addNodesTools(water) {
     document.getElementById("addingNodes").hidden = false;
+
+    if (!water) {
+        let invalid_buttons =  document.querySelectorAll("button.water:not(.heat)");
+        for (let button of invalid_buttons)
+            button.parentElement.parentElement.hidden = true;
+    
+        let x = 0;
+    }
+
+
     // Возвращаем панель в первоначальный вид
     createNetwork(cancel=true);
-}
-
-
-function createHeatNetwork() {
 }

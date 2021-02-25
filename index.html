@@ -32,28 +32,28 @@
         <table id="addingNodes" hidden>
             <caption>Добавить объект</caption>
             <tr>
-                <td><button id="buttonAddSource"><label>Источник</label></button></td>
+                <td><button id="buttonAddSource"    class="water heat"><label>Источник</label></button></td>
             </tr>
             <tr>
-                <td><button id="buttonAddReservoir"><label>Контррезервуар</label></button></td>
+                <td><button id="buttonAddReservoir" class="water"><label>Контррезервуар</label></button></td>
             </tr>
             <tr>
-                <td><button id="buttonAddTower"><label>Водонапорная башня</label></button></td>
+                <td><button id="buttonAddTower"     class="water"><label>Водонапорная башня</label></button></td>
             </tr>
             <tr>
-                <td><button id="buttonAddStandpipe"><label>Колонка</label></button></td>
+                <td><button id="buttonAddStandpipe" class="water"><label>Колонка</label></button></td>
             </tr>
             <tr>
-                <td><button id="buttonAddHydrant"><label>Гидрант</label></button></td>
+                <td><button id="buttonAddHydrant"   class="water"><label>Гидрант</label></button></td>
             </tr>
             <tr>
-                <td><button id="buttonAddWell"><label>Водопроводный колодец</label></button></td>
+                <td><button id="buttonAddWell"      class="water heat"><label>Водопроводный колодец</label></button></td>
             </tr>
             <tr>
-                <td><button id="buttonAddBranch"><label>Разветвление</label></button></td>
+                <td><button id="buttonAddBranch"    class="water heat"><label>Разветвление</label></button></td>
             </tr>
             <tr>
-                <td><button id="buttonAddConsumer"><label>Потребитель</label></button></td>
+                <td><button id="buttonAddConsumer"  class="water heat"><label>Потребитель</label></button></td>
             </tr>
         </table>
         <!-- Панель для выполнения расчетов на сети (пока будет недоступна) -->
@@ -73,13 +73,13 @@
                 <td><button id="loadNetwork">Загрузить</button></td> <!-- onclick="loadNetwork() -->
             </tr>
             <tr>
-                <td><button id="createNetwork" onclick="createNetwork(cancel=false)">Создать новую</button></td>
+                <td><button id="createNetwork" onclick="createNetwork(false)">Создать новую</button></td>
             </tr>
             <tr>
-                <td><button id="createHeatNetwork" onclick="createHeatNetwork()" hidden>Схема теплоснабжения</button></td>
+                <td><button id="createWaterNetwork" onclick="addNodesTools(true)" hidden>Схема водоснабжения</button></td>
             </tr>
             <tr>
-                <td><button id="createWaterNetwork" onclick="createWaterNetwork()" hidden>Схема водоснабжения</button></td>
+                <td><button id="createHeatNetwork" onclick="addNodesTools(false)" hidden>Схема теплоснабжения</button></td>
             </tr>
             <tr>
                 <td><button id="cancelCreateNetwork" onclick="createNetwork(cancel=true)" hidden>Отменить</button></td>
