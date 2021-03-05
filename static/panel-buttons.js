@@ -9,7 +9,7 @@ function createNetwork(cancel=false) {
     let panel = document.getElementById("buttonsOfControlSchema");
 
     // Меняем title на панели
-    panel.querySelector("caption").innerText = cancel ? "Схема" : "Создание схемы";
+    panel.querySelector("h1").innerText = cancel ? "Схема" : "Создание схемы";
 
     // Скрываем кнопки управления схемой и отображаем варианты создания
     for (let button of panel.querySelectorAll("button")) {
@@ -20,16 +20,41 @@ function createNetwork(cancel=false) {
 // @water - флаг инициализации инструментов для отрисовки схемы водоснбажения (в случае true)
 //          и для отрисовки схемы теплоснабжения (в случае false)                
 function addNodesTools(water) {
-    document.getElementById("addingNodes").hidden = false;
+    let block = document.getElementById("addingNodes");
+    block.hidden = false;
+    block.style.display = "flex";
+    block.style.flexDirection = "column";
+    block.style.alignItems = "center";
+
 
     if (!water) {
         let invalid_buttons =  document.querySelectorAll("button.water:not(.heat)");
         for (let button of invalid_buttons)
-            button.parentElement.parentElement.hidden = true;
+            button.hidden = true;
     
-        let x = 0;
-    }
+        // Меняем иконки и подписи на некоторых кнопках
+        let label = document.querySelector("#buttonAddWell label");
+        label.innerText = "Тепловая камера";
 
+        // Также подправляем css-свойства на кнопках панели
+        let source = document.querySelector('#buttonAddSource');
+        source.style.backgroundImage = "url(./images/panel_icons/heat/source.png)";
+        source.style.backgroundPositionY = "-1px";
+
+        let chamber = document.querySelector('#buttonAddWell');
+        chamber.style.backgroundImage = "url(./images/panel_icons/heat/chamber.png)";
+        chamber.style.backgroundSize = "30px";
+        chamber.style.backgroundPositionX = "0px";
+        chamber.style.backgroundPositionY = "0px";
+
+        document.querySelector('#buttonAddBranch').style.backgroundPositionX = "6px";
+
+        let consumer = document.querySelector('#buttonAddConsumer');
+        consumer.style.backgroundImage = "url(./images/panel_icons/heat/consumer.png)";
+        consumer.style.backgroundSize = "20px";
+        consumer.style.backgroundPositionX = "5px";
+        consumer.style.backgroundPositionY = "3px";
+    }
 
     // Возвращаем панель в первоначальный вид
     createNetwork(cancel=true);
