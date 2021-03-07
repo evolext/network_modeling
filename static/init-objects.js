@@ -1,19 +1,26 @@
+//////////////////////////////////////////////////////////////////
+//  Модуль для управления инициализацией геообъектов на карте
+//////////////////////////////////////////////////////////////////
+
 // Добавление объекта на карту в указанное место
-function addObjectOnPoint(type, e) {
-    initObject(type, e.latlng);
+function addObjectOnPoint(obj_type, e) {
+    initObject(obj_type, e.latlng);
     // Удаляем обработчик события
-    map.off('click');
+    app.map.off('click');
 }
 
 /* Создание геообъекта
     @type - тип геообъекта
-    @coordinates=undefined - координаты центра объекта
-    @key - он же id объекта, в общем случае устанавливается автоматически, но при загрузке схемы можно задать вручную
+    @coordinates - координаты центра объекта
+    @key - он же id объекта, в общем случае устанавливается автоматически,
+           но при загрузке схемы указывается тот, что был у объекта на момент сейва
+    @mode: 0 - выключенный объект, 1 - включенный объект
 */
 function initObject(type, coordinates, key=undefined, mode=1) {
+    // Блокируем возможность перетаскивать объект
     let drag = false;
     if (typeof key === 'undefined')
-        key = id++;
+        key = app.id++;
 
     // Создание кастомной иконки объекта
     let objIcon = createIcon(type, mode);
@@ -21,53 +28,23 @@ function initObject(type, coordinates, key=undefined, mode=1) {
     var obj = L.marker(coordinates, {
         icon: objIcon,
         draggable: drag
-    }).addTo(map);
+    }).addTo(app.map);
 
     // Контекстное меню объекта
     obj.bindPopup(createCtxMenu(type, key), {
-        closeButton: true
+       closeButton: true
     });
 
-    geoObjects.push({
+    app.geoObjects.push({
         id: key,
         type: type,
         value: obj
     });
 
-    objectsInfo.set(key, {
+    app.objectsInfo.set(key, {
         activity: mode,
         consumption: 0
     });
-}
-
-/* Функция получения шаблона контекстного меню объекта
-    @type - тип геообъекта
-    @obj_id - идентификатор геообъекта
-*/
-function createCtxMenu(type, obj_id){
-    let ctxMenu = "<table>";
-    switch(type) 
-    {
-        case 'consumer':
-            break;
-        case 'pipe':
-            ctxMenu += "<tr><td><input type='button' value='Редактировать' class='editPipe popupButton' data-id='" + obj_id + "'/></td></tr>";
-            break;
-        default:
-            ctxMenu += "<tr><td><input type='button' value='Начать путь' class='startPipe popupButton' data-id='" + obj_id + "'/></td></tr>";     
-            break;
-    }
-    ctxMenu += "<tr><td><input type='button' value='Информация' class='getInfo popupButton' data-id='" + obj_id + "'/></td></tr>";
-    ctxMenu += "<tr><td><input type='button' value='Удалить объект' class='removeObject popupButton' data-id='" + obj_id + "'/></td></tr>";
-    // Переключатель режима геообъекта
-    if (type != 'well' && type != 'branch' && type != 'pipe') {
-        ctxMenu +=
-        "<tr><td class='switch-container'>" +
-            "Состояние (выкл\\вкл): <label class='switch'><input type='checkbox' class='toggleObject' data-id='" + obj_id + "'><span class='slider'></span></label>" + 
-        "</td></tr>";
-    }
-    ctxMenu += "</table>";
-    return ctxMenu;
 }
 
 /* Функция получения кастомной икноки геообъекта
@@ -109,7 +86,8 @@ function createIcon(type, mode=true) {
             size = [15, 15];
             break;
     }
-    let url = mode ? `./icons/active/${type}.png` : `./icons/inactive/${type}.png`;
+    //let url = mode ? `./images/active/${type}.png` : `./icons/inactive/${type}.png`;
+    let url = `./images/panel_icons/` + app.kind.toLowerCase() + `/${type}.png`;
     let icon = L.icon({
         iconUrl: url,
         iconSize: size,
@@ -119,32 +97,74 @@ function createIcon(type, mode=true) {
     return icon;
 }
 
-// Инициализация пайпа
-function initPipe(firstPoint) {    
-    // Завершаем редактирование предыдущего пайпа (если есть)
-    if (polylineEditor) {
-        let old_pipe = pipes.get(edId);
-        old_pipe.disableEdit();
-        old_pipe.bindPopup(pipePopup);
+/* Функция получения шаблона контекстного меню объекта
+    @type - тип геообъекта
+    @obj_id - идентификатор геообъекта
+*/
+function createCtxMenu(type, obj_id){
+    let ctxMenu = "<div style='display: flex; flex-direction: column;'>"
 
-        polylineEditor = null;
-        edId = null;
-        pipePopup = null;
+    switch(type) 
+    {
+        case 'consumer':
+            break;
+        case 'pipe':
+            ctxMenu += "<button class='editPipe popupButton' data-id='" + obj_id + "'>Редактировать</button>";
+            break;
+        default:
+            ctxMenu += "<button class='startPipe popupButton' data-id='" + obj_id + "'>Начать путь</button>";
+            break;
+    }
+
+    ctxMenu += "<button class='getInfo popupButton' data-id='" + obj_id + "'>Информация</button>";
+    ctxMenu += "<button class='removeObject popupButton' data-id='" + obj_id + "'>Удалить объект</button>";
+    
+    // // Переключатель режима геообъекта
+    // if (type != 'well' && type != 'branch' && type != 'pipe') {
+    //     ctxMenu +=
+    //     "<tr><td class='switch-container'>" +
+    //         "Состояние (выкл\\вкл): <label class='switch'><input type='checkbox' class='toggleObject' data-id='" + obj_id + "'><span class='slider'></span></label>" + 
+    //     "</td></tr>";
+    // }
+    // ctxMenu += "</table>";
+
+    ctxMenu += "</div>";
+    return ctxMenu;
+}
+
+// Инициализация пайпа
+//  @firstPoint - точка начала рисования пайпа
+function initPipe(firstPoint) {
+    let pipe_id = app.id;
+    
+    // Завершаем редактирование предыдущего пайпа (если есть)
+    if (app.polylineEditor) {
+        // Завершаем редактировение старого пайпа и возвращаем ему popup для статики
+        let old_pipe = app.pipes.get(app.editableId);
+        old_pipe.disableEdit();
+        old_pipe.bindPopup(app.pipePopup);
+
+        // Возвращаем настройки так, будто бы до этого пайп не редактировался
+        app.polylineEditor = null;
+        app.editableId = null;
+        app.pipePopup = null;
     }
 
     var pipe = L.polyline([firstPoint], {});
-    pipePopup= L.popup({
+    app.pipePopup= L.popup({
         closeButton: true
-    }).setContent(createCtxMenu('pipe', id));
-    pipe.addTo(map);
-    pipes.set(id, pipe);
-    pipesInfo.set(id, {
+    }).setContent(createCtxMenu('pipe', pipe_id));
+
+    pipe.addTo(app.map);
+
+    app.pipes.set(pipe_id, pipe);
+    app.pipesInfo.set(pipe_id, {
         activity: 1,
         consumption: 0
     });
 
     // Запуск редактора
-    polylineEditor = pipe.enableEdit();
-    polylineEditor.continueBackward();
-    edId = id++;
+    app.polylineEditor = pipe.enableEdit();
+    app.polylineEditor.continueBackward();
+    app.editableId = app.id++;;
 }

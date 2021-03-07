@@ -28,6 +28,8 @@ function addNodesTools(water) {
 
 
     if (!water) {
+        app.kind = 'HEAT';
+
         let invalid_buttons =  document.querySelectorAll("button.water:not(.heat)");
         for (let button of invalid_buttons)
             button.hidden = true;
@@ -42,7 +44,7 @@ function addNodesTools(water) {
         source.style.backgroundPositionY = "-1px";
 
         let chamber = document.querySelector('#buttonAddWell');
-        chamber.style.backgroundImage = "url(./images/panel_icons/heat/chamber.png)";
+        chamber.style.backgroundImage = "url(./images/panel_icons/heat/well.png)";
         chamber.style.backgroundSize = "30px";
         chamber.style.backgroundPositionX = "0px";
         chamber.style.backgroundPositionY = "0px";

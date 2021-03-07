@@ -62,23 +62,34 @@
     </div>
 </body>
 <script>
-    var id = 0;
-    var geoObjects = [];
-    var pipes = new Map();
-    var objectsInfo = new Map();
-    var pipesInfo = new Map();
-    var polylineEditor;
-    var area;
+    var app = {
+        // Тип редактируемой сети (ВС по умолчанию)
+        kind: 'WATER',
 
-    // Идентификаторр редактируемого пайпа
-    var edId = null;
-    // Контекстное меню редактируемого пайпа
-    var edPopup = null;
-    // Контекстное меню пайпа, доступное до редактирования
-    var pipePopup = null;
+        // Глобальный счетчик для нумерации объектов
+        id: 0,
+        // Инициализированные геообъекты
+        geoObjects: [],
+        // Инициализированные участки
+        pipes: new Map(),
+        // Характериситки объектов
+        objectsInfo: new Map(),
+        // Характеристики участков
+        pipesInfo: new Map(),
+        // Редактор участка
+        polylineEditor: undefined,
+        // ?
+        // area: undefined
+        // Идентификаторр редактируемого пайпа
+        editableId: null, // edID
+        // Контекстное меню редактируемого пайпа
+        editablePopup: null, // edPopup
+        // Контекстное меню пайпа, доступное до редактирования
+        pipePopup: null
+    }
 
     // Создание объекта карты
-    var map = L.map('map', {
+    app.map = L.map('map', {
         attributionControl: false,
         zoomControl: false,
         center: [55.295244847326224, 79.67630911719661],
@@ -95,82 +106,162 @@
         tileSize: 512,
         zoomOffset: -1,
         accessToken: 'pk.eyJ1IjoiZXZvbGV4dCIsImEiOiJja2Nqeml1dTcxcGJjMnFvOGdsZGxhOHV5In0.eaJ9XIWElB4JaCejC3JpJQ'
-    }).addTo(map);
+    }).addTo(app.map);
 
     // Более "ландшафтный" слой
     //L.tileLayer.provider('OpenStreetMap.Mapnik').addTo(map);
 
     // Добавление кнопки экспорта карты
-    L.control.bigImage({position: 'topleft'}).addTo(map);
+    // L.control.bigImage({position: 'topleft'}).addTo(map);
 
     // Назначение функции добавления объекта на карту по клику
-    document.getElementById('toolsPanel').querySelectorAll('#buttonsOfAdding input').forEach((item) => item.addEventListener('click', function(e) {
+    document.getElementById('toolsPanel').querySelectorAll('#addingNodes button').forEach((item) => item.addEventListener('click', function(e) {
         // Отключаем обработчики, включенные ранее        
-        map.off('click');
+        app.map.off('click');
         // Определеяем тип добавляемого объекта, извлекаем его с помощью "отсекания" строки buttonAdd от id кнопки
         let obj_type = this.id.slice('buttonAdd'.length).toLowerCase();
-        map.on('click', addObjectOnPoint.bind(null, obj_type));
+        // с помощью bind передаем в качетсве обработчика функцию, с "вшитым параметром",
+        // потому что мы тут не вызываем функцию, а передаем только прототип
+        app.map.on('click', addObjectOnPoint.bind(null, obj_type));
     }));
 
-    
+    // Обработка события контектсного меню геообъекта "Начать путь" - т.е. инициализация нового пайпа
     $('#map').on('click', '.startPipe', function(e) {
+        // Индекс инициализирующего объекта
         let objId = Number(e.target.dataset.id);
-        let index = geoObjects.findIndex((obj) => obj.id == objId);
-        initPipe(geoObjects[index].value.getLatLng());
+        let index = app.geoObjects.findIndex((obj) => obj.id == objId);
+        // Координаты инициализирующего объекта
+        initPipe(app.geoObjects[index].value.getLatLng());
         // Закрытие popup объекта
-        geoObjects[index].value.closePopup();
+        app.geoObjects[index].value.closePopup();
     });
 
-    // Удаление объекта с карты
+    // Обработка удаления объекта с карты
     $('#map').on('click', '.removeObject', function(e) {
-        let objId = Number(e.target.dataset.id);
-        let index = geoObjects.findIndex((obj) => obj.id == objId);
-        if (index >= 0) {
-            geoObjects[index].value.removeFrom(map);
-            geoObjects.splice(index, 1);
-            objectsInfo.delete(objId);
-        }
-        else {
-            pipes.get(objId).removeFrom(map);
-            pipes.delete(objId);
-            pipesInfo.delete(objId);
-        }
-    });
-
-    // Показ информации по объекту
-    $('#map').on('click', '.getInfo', function(e) {
-        map.closePopup();
-
-        // Запрашиваемая инфомрация по объекту
         let obj_id = Number(e.target.dataset.id);
-        let obj_info = objectsInfo.has(obj_id) ? objectsInfo.get(obj_id) : pipesInfo.get(obj_id);
+        let index = app.geoObjects.findIndex((obj) => obj.id == obj_id);
 
-        // Настройка вида открывающегося окна
-        let params = 'left=500,top=100,width=330,height=300';
-        let new_window = window.open("./info.html", "window", params);
-
-        // Заполнение таблицы с данными
-        new_window.addEventListener('load', function() {
-            let fields = new_window.document.querySelectorAll('input');
-            fields[0].value = obj_info["consumption"].toString();
-
-            // Фокусировка на поле ввода
-            fields[0].focus();
-        });
-
-        // Обновляем данные после закрытия
-        new_window.addEventListener('beforeunload', function() {
-            obj_info["consumption"] = Number(new_window.document.querySelectorAll('input')[0].value);
-        });
-
+        // Удаление геообъекта
+        if (index >= 0) {
+            app.geoObjects[index].value.removeFrom(app.map);
+            app.geoObjects.splice(index, 1);
+            app.objectsInfo.delete(obj_id);
+        }
+        // Удаление пайпа
+        else {
+            app.pipes.get(obj_id).removeFrom(app.map);
+            app.pipes.delete(obj_id);
+            app.pipesInfo.delete(obj_id);
+        }
     });
 
-    map.on('popupopen', function(e) {
+    app.map.on('editable:vertex:click', function (e) {
+        e.vertex.continue();
+    });
+
+
+    // При соединении двух геообъектов пайпом
+    app.map.on('editable:drawing:click', function(e) {
+        let target = e.originalEvent.target;
+        if (target.id != 'map') {
+            e.cancel();
+
+            // Ставим точку точно в центр геообъекта
+            // 1. Находим элемент, по которому прошел клик
+            // 2. Получаем точки редактируеемого пайпа и добвляем к ним точку центра объекта, по которому прошел клик
+            // 3. Перерисовываем редактируемый пайп
+            let obj = app.geoObjects.find(elem => elem.value._icon._leaflet_id == target._leaflet_id);
+            let pipe = app.pipes.get(app.editableId);
+            let points = pipe.getLatLngs();
+            points.unshift(obj.value.getLatLng());
+            pipe.redraw();
+
+            // Завершаем редактирование
+            pipe.disableEdit();
+            pipe.bindPopup(app.pipePopup);
+            app.polylineEditor = null;
+            app.editableId = null;
+            app.pipePopup = null;
+        }
+    });
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    
+
+
+    // Обработка открытия контексного меню пайпа при его отрисовке (или редактировании)
+    app.map.on('editable:vertex:contextmenu', function (e) {
+        app.map.editTools.stopDrawing();
+
+        // Открытие контекстного меню редактора пайпа
+        if (!app.editablePopup) {
+            app.editablePopup= L.popup();
+            app.editablePopup.setContent(
+                "<div style='display: flex; flex-direction: column; align-items: center;'>" + 
+                    "<h1>Путь</h1>" +
+                    "<button class='continuePipe popupButton'>Продолжить</button>" +
+                    "<button class='endPipe popupButton'>Завершить редактирование</button>" +
+                    "<button class='removeVertex popupButton'>Удалить вершину</button>" +
+                    "<button class='removePipe popupButton'>Удалить весь путь</button>" +
+                "</div>" +
+                "<div id='popupAddingNodes' style='display: flex; flex-direction: column; align-items: center; margin-top: 20px;'>" +
+                    "<h1>Добавить объект</h1>" +
+                    "<button class='initTower popupButton'>Водонапорная башня</button>" +
+                    "<button class='initReservoir popupButton'>Контррезервуар</button>" +
+                    "<button class='initStandpipe popupButton'>Колонка</button>" +
+                    "<button class='initHydrant popupButton'>Гидрант</button>" +
+                    "<button class='initWell popupButton'>Водопроводный колодец</button>" +
+                    "<button class='initBranch popupButton'>Разветвление</button>" +
+                    "<button class='initConsumer popupButton'>Потребитель</button>" +
+                "</div>"
+               
+                // "<tr>" + 
+                //     "<td class='switch-container'>" +
+                //         `Состояние (выкл\\вкл): <label class='switch'><input type='checkbox' class='toggleObject'><span class='slider'></span></label>` + 
+                //     "</td>" +
+                // "</tr>" +
+            );
+        }
+
+        app.editablePopup.setLatLng(e.latlng);
+        app.editablePopup.openOn(app.map);
+
+
+        // Для непоследних вершин пайпа
+        if (e.latlng != e.sourceTarget.latlngs[0]) {
+
+            // Для начальной вершины пути вообще не должно быть инициализации объекта
+            if (e.latlng == e.sourceTarget.latlngs[e.sourceTarget.latlngs.length - 1])
+                document.getElementById('popupAddingNodes').style.display = 'none';
+
+            // Валидные кнопки
+            let valid_buttons = ['endPipe', 'removePipe', 'initWell', 'initBranch'];
+
+            // Оставляем только валидные кнопки в контекстном меню
+            Array.from(document.querySelectorAll('div.leaflet-popup-content .popupButton')).map(function(elem, index, array) {
+                elem.hidden = !(valid_buttons.includes(elem.classList[0]));
+            });
+        }
+
+        // // Устанавливаем правильное положение ползунка в переключателе режима
+        // let checkbox = document.querySelector('input[type="checkbox"]');
+        // checkbox.checked = (pipesInfo.get(edId).activity == 1);
+    });
+    
+
+
+    // Обработка события открытия popup (контекстного меню) у геообъектов
+    app.map.on('popupopen', function(e) {
         if (typeof e.popup._source === 'undefined')
             return;
 
-        // Проверяем, является ли геообъектом (только у них обрабатываем)
-        let obj = geoObjects.find(elem => elem.value._leaflet_id == e.popup._source._leaflet_id);
+        // Проверяем, является ли геообъектом (только у них обрабатываем )
+        let obj = app.geoObjects.find(elem => elem.value._leaflet_id == e.popup._source._leaflet_id);
         if (typeof obj !== 'undefined') {
             // Устанавилваем переключатель режима в нужное положение (если объект имеет два режима)
             let checkbox = document.querySelector('input[type="checkbox"]');
@@ -179,95 +270,36 @@
         }
     });
 
-    map.on('editable:vertex:click', function (e) {
-        e.vertex.continue();
-    });
 
-    map.on('editable:vertex:contextmenu', function (e) {
-        map.editTools.stopDrawing();
+    // // Показ информации по объекту
+    // $('#map').on('click', '.getInfo', function(e) {
+    //     map.closePopup();
 
-        // Открытие контекстного меню редактора пайпа
-        if (!edPopup) {
-            edPopup= L.popup();
-            edPopup.setContent(
-                "<table>" +
-                    "<caption>Путь</caption>" + 
-                    "<tr><td><input type='button' value='Продолжить' class='continuePipe popupButton'/></td></tr>" +
-                    "<tr><td><input type='button' value='Завершить редактирование' class='endPipe popupButton'/></td></tr>" +
-                    "<tr><td><input type='button' value='Удалить вершину' class='removeVertex popupButton'/></td></tr>" +
-                    "<tr><td><input type='button' value='Удалить весь путь' class='removePipe popupButton'/></td></tr>" +
-                    "<tr>" + 
-                        "<td class='switch-container'>" +
-                            `Состояние (выкл\\вкл): <label class='switch'><input type='checkbox' class='toggleObject'><span class='slider'></span></label>` + 
-                        "</td>" +
-                    "</tr>" +
-                "</table>" +
+    //     // Запрашиваемая инфомрация по объекту
+    //     let obj_id = Number(e.target.dataset.id);
+    //     let obj_info = objectsInfo.has(obj_id) ? objectsInfo.get(obj_id) : pipesInfo.get(obj_id);
 
-                "<table>" +
-                    "<caption>Добавить объект</caption>" + 
-                    "<tr><td><input type='button' value='Водонапорная башня' class='initTower popupButton'/></td></tr>" +
-                    "<tr><td><input type='button' value='Контррезервуар' class='initReservoir popupButton'/></td></tr>" +
-                    "<tr><td><input type='button' value='Колонка' class='initStandpipe popupButton'/></td></tr>" +
-                    "<tr><td><input type='button' value='Гидрант' class='initHydrant popupButton'/></td></tr>" +
-                    "<tr><td><input type='button' value='Водопроводный колодец' class='initWell popupButton'/></td></tr>" +
-                    "<tr><td><input type='button' value='Разветвление' class='initBranch popupButton'/></td></tr>" +
-                    "<tr><td><input type='button' value='Потребитель' class='initConsumer popupButton'/></td></tr>" +
-                "</table>"   
-            );
-        }
-        edPopup.setLatLng(e.latlng);
-        edPopup.openOn(map);
-        document.querySelectorAll('div.leaflet-popup-content-wrapper table')[1].hidden = false;
+    //     // Настройка вида открывающегося окна
+    //     let params = 'left=500,top=100,width=330,height=300';
+    //     let new_window = window.open("./info.html", "window", params);
 
-        // Индексы кнопок контеекстного меню, которые необходимо отобразить
-        let visibleButtons = Array.from(document.querySelectorAll('div.leaflet-popup-content .popupButton')).reduce(function (prev, elem, index) {
-            prev.push(index);
-            return prev;
-        }, []);
-        
+    //     // Заполнение таблицы с данными
+    //     new_window.addEventListener('load', function() {
+    //         let fields = new_window.document.querySelectorAll('input');
+    //         fields[0].value = obj_info["consumption"].toString();
 
-        if (e.latlng != e.sourceTarget.latlngs[0]) {
-            visibleButtons = [1, 3, 8, 9];
-            // Для контекстного меню первой вершины пайпа
-            document.querySelectorAll('div.leaflet-popup-content-wrapper table')[1].hidden = (e.latlng == e.sourceTarget.latlngs[e.sourceTarget.latlngs.length - 1]) ? true : false;
-        }
+    //         // Фокусировка на поле ввода
+    //         fields[0].focus();
+    //     });
 
-        // Все пункты контекстного меню
-        let buttons = Array.from(document.querySelectorAll('div.leaflet-popup-content .popupButton'));
+    //     // Обновляем данные после закрытия
+    //     new_window.addEventListener('beforeunload', function() {
+    //         obj_info["consumption"] = Number(new_window.document.querySelectorAll('input')[0].value);
+    //     });
 
-        for (let i = 0; i < buttons.length; i++) {
-            buttons[i].hidden = visibleButtons.includes(i) ? false : true;
-        }
+    // });
 
-        // Устанавливаем правильное положение ползунка в переключателе режима
-        let checkbox = document.querySelector('input[type="checkbox"]');
-        checkbox.checked = (pipesInfo.get(edId).activity == 1);
-    });
 
-    // При соединении двух геообъектов пайпом
-    map.on('editable:drawing:click', function(e) {
-        let target = e.originalEvent.target;
-        if (target.id != 'map') {
-            e.cancel();
-
-            // Ставим точку точно в центр геообъекта
-            // 1. Находим элемент, по которому прошел клик
-            // 2. Получаем точки редактируеемого пайпа и добвляем к ним точку центра объекта, по которому прошел клик
-            // 3. Перерисовываем реедактируемый пайп
-            let obj = geoObjects.find(elem => elem.value._icon._leaflet_id == target._leaflet_id);
-            let pipe = pipes.get(edId);
-            let points = pipe.getLatLngs();
-            points.unshift(obj.value.getLatLng());
-            pipe.redraw();
-
-            // Завершаем редактирование
-            pipe.disableEdit();
-            pipe.bindPopup(pipePopup);
-            polylineEditor = null;
-            edId = null;
-            pipePopup = null;
-        }
-    });
 </script>
 <script src="/pipe-popup-events.js"></script>
 </html>
