@@ -157,6 +157,35 @@ function initPipe(firstPoint) {
 
     pipe.addTo(app.map);
 
+
+    // Добавление стрелок
+    var decorator = L.polylineDecorator(pipe, {
+        patterns: [{
+            // Величина смещения первой стрелки отностиельно первой вершины
+            offset: 10,   
+            // Величина смещения стрелки отностельно последней вершины  
+            endOffset: 10,
+            // Расстояние между стрелками
+            repeat: 40,
+            // Экземпляр класса стрелки
+            symbol: L.Symbol.arrowHead({
+                // Длина стрелки
+                pixelSize: 15,
+                // Угол стрелки
+                headAngle: 35,
+                pathOptions: {
+                    // Прозрачность
+                    fillOpacity: 1,
+                    // Выделение жирное
+                    weight: 0
+                }
+            })
+        }]
+    }).addTo(app.map);
+
+
+
+
     app.pipes.set(pipe_id, pipe);
     app.pipesInfo.set(pipe_id, {
         activity: 1,
