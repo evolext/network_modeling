@@ -53,8 +53,13 @@ $('#map').on('click', '.removePipe', function() {
     let pipe = app.pipes.get(pipe_id);
     pipe.toggleEdit();
     pipe.remove();
-    
+
+    // Удаление декоратора
+    app.pipesArrows.get(pipe_id).remove();
+
+    // Удаление всей соответствующей информации
     app.pipes.delete(pipe_id);
+    app.pipesArrows.delete(pipe_id);
     app.pipesInfo.delete(pipe_id);
 
     app.polylineEditor = null;
@@ -94,7 +99,7 @@ $('#map').on('click', '.initTower, .initReservoir, .initHydrant, .initStandpipe,
     let obj_type = this.className.split(' ').find(elem => elem.startsWith('init')).substr('init'.length).toLowerCase();
 
     
-    if ((obj_type != 'branch' && obj_type != 'well') || (add.editablePopup.getLatLng() == app.pipes.get(app.editableId).getLatLngs()[0])) {
+    if ((obj_type != 'branch' && obj_type != 'well') || (app.editablePopup.getLatLng() == app.pipes.get(app.editableId).getLatLngs()[0])) {
         // Завршить редактирование пайпа
         endPipeEdit();
     }

@@ -2,6 +2,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Главная страница</title>
+    <link rel="shortcut icon" type="image/png" href="./images/panel_icons/heat/source.png"/>
     <link rel="stylesheet" type="text/css" href="style.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ==" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js" integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew==" crossorigin=""></script>
@@ -17,7 +18,6 @@
 
     <!-- Свои модули -->
     <script src="./init-objects.js"></script>
-    <script src="./server-requests.js"></script>
     <script src="./panel-buttons.js"></script>
 
 
@@ -53,13 +53,13 @@
         </table> -->
 
         <div id="buttonsOfControlSchema">
-            <h1>Схема</h1>
-            <button id="saveNetwork" hidden>Сохранить</button></td> <!-- onclick="saveNetwork()" -->
-            <button id="loadNetwork">Загрузить</button></td> <!-- onclick="loadNetwork() -->
-            <button id="createNetwork" onclick="createNetwork(false)">Создать новую</button>
-            <button id="createWaterNetwork" onclick="addNodesTools(true)" hidden>Схема водоснабжения</button>
-            <button id="createHeatNetwork" onclick="addNodesTools(false)" hidden>Схема теплоснабжения</button>
-            <button id="cancelCreateNetwork" onclick="createNetwork(cancel=true)" hidden>Отменить</button>
+            <h1>Режим работы</h1>
+            <button id="saveNetwork" onclick="saveNetwork()" disabled hidden>Сохранить изменения</button>
+            <button id="createNetwork" onclick="createNetwork()" hidden>Создать</button>
+            <button id="loadNetwork" disabled hidden>Загрузить</button><!-- onclick="loadNetwork() -->
+            <button id="createWaterNetwork" onclick="chooseMode(true)"> Схема водоснабжения </button>
+            <button id="createHeatNetwork"   onclick="chooseMode(false)">Схема теплоснабжения</button>
+            <button id="cancelCreateNetwork" onclick="exitMode()" hidden>Выйти из режима</button>
         </div>
     </div>
     </div>
@@ -67,7 +67,7 @@
 <script>
     var app = {
         // Тип редактируемой сети (ВС по умолчанию)
-        kind: 'WATER',
+        mode: 'NONE',
 
         // Глобальный счетчик для нумерации объектов
         id: 0,
@@ -79,6 +79,8 @@
         objectsInfo: new Map(),
         // Характеристики участков
         pipesInfo: new Map(),
+        // Декораторы участков
+        pipesArrows: new Map(),
         // Редактор участка
         polylineEditor: undefined,
         // ?
@@ -95,13 +97,13 @@
     app.map = L.map('map', {
         attributionControl: false,
         zoomControl: false,
-        center: [55.295244847326224, 79.67630911719661],
+        center: [54.992265230059814, 82.91812709398647],
         zoom: 14,
         editable: true,
         drawControl: true
     });
 
-    // Кастомный классический слой
+    // // Кастомный классический слой
     L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
         attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
         maxZoom: 20,
@@ -112,7 +114,7 @@
     }).addTo(app.map);
 
     // Более "ландшафтный" слой
-    //L.tileLayer.provider('OpenStreetMap.Mapnik').addTo(map);
+    //L.tileLayer.provider('OpenStreetMap.Mapnik').addTo(app.map);
 
     // Добавление кнопки экспорта карты
     // L.control.bigImage({position: 'topleft'}).addTo(map);
@@ -152,8 +154,12 @@
         }
         // Удаление пайпа
         else {
+            // Удаление с карты (+ удаление декоратора)
             app.pipes.get(obj_id).removeFrom(app.map);
+            app.pipesArrows.get(obj_id).removeFrom(app.map);
+
             app.pipes.delete(obj_id);
+            app.pipesArrows.delete(obj_id);
             app.pipesInfo.delete(obj_id);
         }
     });

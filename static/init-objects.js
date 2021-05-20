@@ -87,7 +87,7 @@ function createIcon(type, mode=true) {
             break;
     }
     //let url = mode ? `./images/active/${type}.png` : `./icons/inactive/${type}.png`;
-    let url = `./images/panel_icons/` + app.kind.toLowerCase() + `/${type}.png`;
+    let url = `./images/panel_icons/` + app.mode.toLowerCase() + `/${type}.png`;
     let icon = L.icon({
         iconUrl: url,
         iconSize: size,
@@ -183,14 +183,12 @@ function initPipe(firstPoint) {
         }]
     }).addTo(app.map);
 
-
-
-
     app.pipes.set(pipe_id, pipe);
     app.pipesInfo.set(pipe_id, {
         activity: 1,
         consumption: 0
     });
+    app.pipesArrows.set(pipe_id, decorator);
 
     // Запуск редактора
     app.polylineEditor = pipe.enableEdit();
