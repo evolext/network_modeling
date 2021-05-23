@@ -41,10 +41,7 @@ function initObject(type, coordinates, key=undefined, mode=1) {
         value: obj
     });
 
-    app.objectsInfo.set(key, {
-        activity: mode,
-        consumption: 0
-    });
+    app.objectsInfo.set(key, new ParamInfo(true));
 }
 
 /* Функция получения кастомной икноки геообъекта
@@ -184,14 +181,27 @@ function initPipe(firstPoint) {
     }).addTo(app.map);
 
     app.pipes.set(pipe_id, pipe);
-    app.pipesInfo.set(pipe_id, {
-        activity: 1,
-        consumption: 0
-    });
+    app.pipesInfo.set(pipe_id, new ParamInfo(false));
     app.pipesArrows.set(pipe_id, decorator);
 
     // Запуск редактора
     app.polylineEditor = pipe.enableEdit();
     app.polylineEditor.continueBackward();
     app.editableId = app.id++;;
+}
+
+
+// Функция создания объекта-информации по объекту сети
+//  @obj_flag - флаг типа объекта сети: true = узел, false = участок
+function ParamInfo(obj_flag = true) {
+    // Расход и напор
+    this.q = undefined;
+    this.h = undefined;
+
+    if (!obj_flag) {
+        this.length = undefined;
+        this.material = "cost_iron";
+        this.diameter = "150";
+        this.velocity = "0.3";
+    }
 }

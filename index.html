@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
-    <title>Главная страница</title>
+    <title>UN modeling</title>
     <link rel="shortcut icon" type="image/png" href="./images/panel_icons/heat/source.png"/>
     <link rel="stylesheet" type="text/css" href="style.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ==" crossorigin=""/>
@@ -194,14 +194,6 @@
         }
     });
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    
-
 
     // Обработка открытия контексного меню пайпа при его отрисовке (или редактировании)
     app.map.on('editable:vertex:contextmenu', function (e) {
@@ -240,21 +232,31 @@
         app.editablePopup.setLatLng(e.latlng);
         app.editablePopup.openOn(app.map);
 
+        let adding_panel = document.getElementById('popupAddingNodes');
+        let all_buttons = Array.from(document.querySelectorAll('div.leaflet-popup-content .popupButton'));
 
         // Для непоследних вершин пайпа
         if (e.latlng != e.sourceTarget.latlngs[0]) {
 
             // Для начальной вершины пути вообще не должно быть инициализации объекта
-            if (e.latlng == e.sourceTarget.latlngs[e.sourceTarget.latlngs.length - 1])
-                document.getElementById('popupAddingNodes').style.display = 'none';
-
+            if (e.latlng == e.sourceTarget.latlngs[e.sourceTarget.latlngs.length - 1]) {
+                adding_panel.style.display = 'none';
+            }
+            else {
+                adding_panel.style.display = 'flex';
+            }
+            
             // Валидные кнопки
             let valid_buttons = ['endPipe', 'removePipe', 'initWell', 'initBranch'];
 
             // Оставляем только валидные кнопки в контекстном меню
-            Array.from(document.querySelectorAll('div.leaflet-popup-content .popupButton')).map(function(elem, index, array) {
+            all_buttons.map(function(elem, index, array) {
                 elem.hidden = !(valid_buttons.includes(elem.classList[0]));
             });
+        }
+        else {
+            adding_panel.style.display = 'flex';
+            all_buttons.forEach(button => button.hidden = false);
         }
 
         // // Устанавливаем правильное положение ползунка в переключателе режима
@@ -263,12 +265,103 @@
     });
     
 
+    // Показ информации по объекту
+    $('#map').on('click', '.getInfo', function(e) {
+        app.map.closePopup();
 
+        // Идентификатор объекта
+        let obj_id = Number(e.target.dataset.id);
+
+        // Определение типа объекта
+        let type = app.objectsInfo.has(obj_id);
+        
+        // Получение запрашиваемой инфомрации
+        let info = type ? app.objectsInfo.get(obj_id) : app.pipesInfo.get(obj_id)
+
+        // Настройка вида открывающегося окна
+        params = 'left=500, top=100, height=300, width=';
+        params += type ? '300' : '560';
+
+        url = type ? "./info_object.html" : "./info_pipe.html";
+    
+        // Открытие окна с информацией
+        let new_window = window.open(url, "window", params);
+
+        // Заполнение таблицы с данными
+        new_window.addEventListener('load', function() {
+
+            // Общие данные и для узлов, и для участков
+            if (typeof info.q !== 'undefined') {
+                new_window.document.getElementById("consumption").value = info.q;
+            }
+            
+            if (typeof info.h !== 'undefined') {
+                new_window.document.getElementById("pressure").value = info.h;
+            }
+
+            // Данные, указываемые только для участков
+            if (!type) {
+                
+                // Длина участка
+                if (typeof info.length !== 'undefined') {
+                    new_window.document.getElementById("length").value = info.length;
+                }
+
+                // Материал трубы
+                new_window.document.getElementById("material").value = info.material;
+
+                // Внутренний диаметр трубы
+                new_window.document.getElementById("diameter").value = info.diameter;
+
+                // Скорость переносимого вещества
+                new_window.document.getElementById("slider").value = info.velocity;
+                new_window.document.getElementById("speed").value = info.velocity;
+
+                // Для участков передаем информацию о его реальной длине
+                let points = app.pipes.get(obj_id).getLatLngs();
+                let length = 0;
+                for (let i = 0; i < points.length - 1; i++)
+                    length += points[0].distanceTo(points[i+1]);
+                new_window.document.getElementById("length").dataset.natural_length = length.toFixed(4);
+            }
+
+            // Фокусировка на поле ввода
+            new_window.document.querySelector("input").focus();
+        });
+
+        // Обновляем данные после закрытия
+        new_window.addEventListener('unload', function() {
+            if (new_window.document.getElementById("consumption")) {
+                info.q = new_window.document.getElementById("consumption").value;
+                info.h = new_window.document.getElementById("pressure").value;
+
+                // Данные по участкам
+                if (!type) {
+                    info.length = new_window.document.getElementById("length").value;
+                    info.material = new_window.document.getElementById("material").value;
+                    info.diameter = new_window.document.getElementById("diameter").value;
+                    info.velocity = new_window.document.getElementById("speed").value;
+                }   
+            }
+        });
+
+
+    });
+
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    
     // Обработка события открытия popup (контекстного меню) у геообъектов
     app.map.on('popupopen', function(e) {
-        if (typeof e.popup._source === 'undefined')
+        if (typeof e.popup._source === 'undefined') {
             return;
-
+        }
+        
         // Проверяем, является ли геообъектом (только у них обрабатываем )
         let obj = app.geoObjects.find(elem => elem.value._leaflet_id == e.popup._source._leaflet_id);
         if (typeof obj !== 'undefined') {
@@ -278,37 +371,6 @@
                 checkbox.checked = (objectsInfo.get(obj.id).activity == 1);
         }
     });
-
-
-    // // Показ информации по объекту
-    // $('#map').on('click', '.getInfo', function(e) {
-    //     map.closePopup();
-
-    //     // Запрашиваемая инфомрация по объекту
-    //     let obj_id = Number(e.target.dataset.id);
-    //     let obj_info = objectsInfo.has(obj_id) ? objectsInfo.get(obj_id) : pipesInfo.get(obj_id);
-
-    //     // Настройка вида открывающегося окна
-    //     let params = 'left=500,top=100,width=330,height=300';
-    //     let new_window = window.open("./info.html", "window", params);
-
-    //     // Заполнение таблицы с данными
-    //     new_window.addEventListener('load', function() {
-    //         let fields = new_window.document.querySelectorAll('input');
-    //         fields[0].value = obj_info["consumption"].toString();
-
-    //         // Фокусировка на поле ввода
-    //         fields[0].focus();
-    //     });
-
-    //     // Обновляем данные после закрытия
-    //     new_window.addEventListener('beforeunload', function() {
-    //         obj_info["consumption"] = Number(new_window.document.querySelectorAll('input')[0].value);
-    //     });
-
-    // });
-
-
 </script>
 <script src="/pipe-popup-events.js"></script>
 </html>

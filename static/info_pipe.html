@@ -1,0 +1,106 @@
+
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <title>Информрация</title>
+    <style>
+        caption {
+            margin-bottom: 10px;
+        }
+        table {
+            border-spacing: 0;
+            border-collapse: collapse;
+            margin: 0;
+            padding: 0;
+        }
+        td {
+            border: 1px solid black;
+            padding: 0;
+        }
+        tr td:first-child {
+            padding-left: 5px;
+            width: 230px;
+        }
+        tr td:nth-child(2) {
+            width: 100px;
+        }
+        tr td:nth-child(3) {
+            padding-left: 5px;
+            border: none;
+        }
+        input[type="text"] {
+            width: 90%;
+            margin: 0;
+            text-align: center;
+            border: none;
+        }
+        input:focus, select:focus{
+            outline: none;
+        }
+        select {
+            width: 100%;
+            text-align-last: center;
+            border: none;
+        }
+        button {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <table>
+        <caption>Гидравлические характеристики</caption>
+        <tr>
+            <td><span>Расход, л/с:</span></td>
+            <td><input type="text" id="consumption"></td>
+        </tr>
+        <tr>
+            <td><span>Потери напора, м:</span></td>
+            <td><input type="text" id="pressure"></td>
+        </tr>
+        <tr>
+            <td></span>Длина участка, м:</span></td>
+            <td><input type="text" id="length" data-natural_length="0"></td>
+            <td><button id="get_length">Получить с карты</button></td>
+        </tr>
+        <tr>
+            <td></span>Материал трубы:</span></td>
+            <td>
+                <select id="material">
+                    <option value="steel">Сталь</option>
+                    <option value="cost_iron">Чугун</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td></span>Внутренний диаметр трубы, мм:</span></td>
+            <td>
+                <select id="diameter">
+                    <option value="100">100</option>
+                    <option value="125">125</option>
+                    <option value="150">150</option>
+                    <option value="200">200</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td></span>Скорость вещества, м/с:</span></td>
+            <td><input type="text" id="speed"></td>
+            <td>
+                <span>0.2</span>
+                <input type="range" id="slider" min="0.2" max="1.1" step="0.1" style="display: inline-block; vertical-align:middle;" >
+                <span>1.1</span>
+            </td>
+        </tr>
+    </table>
+    <script>
+        document.getElementById("slider").onchange = function () {
+            document.getElementById("speed").value = document.getElementById("slider").value;
+        }
+
+        document.getElementById("get_length").onclick = function () {
+            document.getElementById("length").value = document.getElementById("length").dataset.natural_length;
+        }
+    </script>
+</body>
+</html>
