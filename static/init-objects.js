@@ -181,7 +181,7 @@ function initPipe(firstPoint) {
     }).addTo(app.map);
 
     app.pipes.set(pipe_id, pipe);
-    app.pipesInfo.set(pipe_id, new ParamInfo(false));
+    app.objectsInfo.set(pipe_id, new ParamInfo(false));
     app.pipesArrows.set(pipe_id, decorator);
 
     // Запуск редактора

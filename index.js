@@ -1,5 +1,4 @@
 const express = require('express');
-const bodyParser = require('body-parser');
 const fs = require('fs');
 const spawn = require('child_process').spawn;
 
@@ -9,8 +8,9 @@ const server = require('http').createServer(app);
 
 
 app.use(express.static(__dirname + '/static'));
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
 
 // Отбражение главной страницы приложения
 app.get('/', function (request, response) {
@@ -76,27 +76,16 @@ app.get('/load', function(request, response) {
     response.send(network);
 });
 
-// Получение данных для расчета
-app.post('/compute', function(request, response) {
-    // Создание файлов для сохранения данных
-    fs.mkdirSync(__dirname + '/info');
-    fs.writeFileSync('info/objects.txt', '');
-    fs.writeFileSync('info/pipes.txt', '');
-    fs.writeFileSync('info/node_costs.txt', '');
 
-    // Данные о геообъектах
-    for (let [key, value] of Object.entries(request.body.vertices))
-        fs.appendFileSync('info/objects.txt', `${key}\n${value.lat}\t${value.lng}\n`);
-    // Данные о пайпах
-    for (let [key, value] of Object.entries(request.body.edges))
-        fs.appendFileSync('info/pipes.txt', `${key}\n${value[0].lat}\t${value[0].lng}\n${value[value.length - 1].lat}\t${value[value.length - 1].lng}\n`);
-    // Данные о расходах
-    for (let [key, value] of Object.entries(request.body.info))
-        fs.appendFileSync('info/node_costs.txt', `${key}\n${value.consumption}\n`);
+// Запрос на выполнение гидравлического расчета
+app.post('/hydraulic_calc', function(request, response) {
 
+    // Запись полученных данных в файл
+    fs.mkdirSync(__dirname + '/calc');
+    fs.writeFileSync('./calc/input.json', JSON.stringify(request.body));
 
-    // Запуск прогрраммы расчетов
-    const calc_prog = spawn('calculation\ programs/main.exe');
+    // Запуск программы расчета
+    const calc_prog = spawn('./calc_prog/main.exe');
     // Вывод ошибок на случай некорректного выполнения программы расчетов
     calc_prog.stderr.on('data', (data) => {
         console.error(`stderr: ${data}`);
@@ -104,20 +93,19 @@ app.post('/compute', function(request, response) {
 
     // По окончании расчетов отправить результаты клиенту
     calc_prog.on('exit', function () {
-        let result = new Map();
-        let lines = fs.readFileSync('info/pipe_costs.txt').toString().split('\n');
-        for (let i = 0; i < lines.length - 1; i += 2)
-            result.set(lines[i], lines[i + 1]);
+        let result = JSON.parse(fs.readFileSync('./calc/output.json'));
+        // console.log(result);
         
         response.send({
-            data: Object.fromEntries(result)
+            data: JSON.stringify(result)
         });
 
         // Удаление созданных файлов
-        fs.rmdirSync(__dirname + '/info', { recursive: true });
-    });
+        fs.rmdirSync(__dirname + '/calc', { recursive: true });
 
-    //console.log(request.body);
+        // Вывод инфомрации в консоль
+        console.log('Гидравлические расчеты проведены успешно');
+    });
 });
 
 

@@ -30,38 +30,34 @@
 </head>
 <body>
     <div id="wrapper">
-    <div id="map"></div>
-    <div id="toolsPanel">
-        <div id="addingNodes" hidden>
-            <h1>Добавить объект</h1>
-            <button id="buttonAddSource"    class="water heat"><label>Источник</label></button>
-            <button id="buttonAddReservoir" class="water"><label>Контррезервуар</label></button>
-            <button id="buttonAddTower"     class="water"><label>Водонапорная башня</label></button>
-            <button id="buttonAddStandpipe" class="water"><label>Колонка</label></button>
-            <button id="buttonAddHydrant"   class="water"><label>Гидрант</label></button>
-            <button id="buttonAddWell"      class="water heat"><label>Водопроводный колодец</label></button>
-            <button id="buttonAddBranch"    class="water heat"><label>Разветвление</label></button>
-            <button id="buttonAddConsumer"  class="water heat"><label>Потребитель</label></button>
+        <div id="map"></div>
+        <div id="toolsPanel">
+            <div id="addingNodes" hidden>
+                <h1>Добавить объект</h1>
+                <button id="buttonAddSource"    class="water heat"><label>Источник</label></button>
+                <button id="buttonAddReservoir" class="water"><label>Контррезервуар</label></button>
+                <button id="buttonAddTower"     class="water"><label>Водонапорная башня</label></button>
+                <button id="buttonAddStandpipe" class="water"><label>Колонка</label></button>
+                <button id="buttonAddHydrant"   class="water"><label>Гидрант</label></button>
+                <button id="buttonAddWell"      class="water heat"><label>Водопроводный колодец</label></button>
+                <button id="buttonAddBranch"    class="water heat"><label>Разветвление</label></button>
+                <button id="buttonAddConsumer"  class="water heat"><label>Потребитель</label></button>
+            </div>
+            <div id="calcPanel" hidden>
+                <h1>Выполнение расчетов</h1>
+                <button onclick="hydraulic_calc()"><label>Гидравлический</label></button>
+                <button id="" disabled><label>Пьезометрический график</label></button>
+            </div>
+            <div id="buttonsOfControlSchema">
+                <h1>Режим работы</h1>
+                <button id="saveNetwork" onclick="saveNetwork()" disabled hidden>Сохранить изменения</button>
+                <button id="createNetwork" onclick="createNetwork()" hidden>Создать</button>
+                <button id="loadNetwork" disabled hidden>Загрузить</button><!-- onclick="loadNetwork() -->
+                <button id="createWaterNetwork" onclick="chooseMode(true)"> Схема водоснабжения </button>
+                <button id="createHeatNetwork"   onclick="chooseMode(false)">Схема теплоснабжения</button>
+                <button id="cancelCreateNetwork" onclick="exitMode()" hidden>Выйти из режима</button>
+            </div>
         </div>
-        <!-- Панель для выполнения расчетов на сети (пока будет недоступна) -->
-        <!-- <table id="buttonsOfCalculation">
-            <caption>Выполнение расчетов</caption>
-            <tr>
-                <td><input type="button" value="Расход на участках"></td>
-                <td><input type="button" value="Определить расход" onclick="sendData()"></td>
-            </tr>
-        </table> -->
-
-        <div id="buttonsOfControlSchema">
-            <h1>Режим работы</h1>
-            <button id="saveNetwork" onclick="saveNetwork()" disabled hidden>Сохранить изменения</button>
-            <button id="createNetwork" onclick="createNetwork()" hidden>Создать</button>
-            <button id="loadNetwork" disabled hidden>Загрузить</button><!-- onclick="loadNetwork() -->
-            <button id="createWaterNetwork" onclick="chooseMode(true)"> Схема водоснабжения </button>
-            <button id="createHeatNetwork"   onclick="chooseMode(false)">Схема теплоснабжения</button>
-            <button id="cancelCreateNetwork" onclick="exitMode()" hidden>Выйти из режима</button>
-        </div>
-    </div>
     </div>
 </body>
 <script>
@@ -75,10 +71,8 @@
         geoObjects: [],
         // Инициализированные участки
         pipes: new Map(),
-        // Характериситки объектов
+        // Характериситки элементов сети
         objectsInfo: new Map(),
-        // Характеристики участков
-        pipesInfo: new Map(),
         // Декораторы участков
         pipesArrows: new Map(),
         // Редактор участка
@@ -272,11 +266,11 @@
         // Идентификатор объекта
         let obj_id = Number(e.target.dataset.id);
 
-        // Определение типа объекта
-        let type = app.objectsInfo.has(obj_id);
+        // Определение типа объекта (true - узел, false - участок)
+        let type = app.geoObjects.find((node) => node.id == obj_id) !== undefined;
         
         // Получение запрашиваемой инфомрации
-        let info = type ? app.objectsInfo.get(obj_id) : app.pipesInfo.get(obj_id)
+        let info = app.objectsInfo.get(obj_id);
 
         // Настройка вида открывающегося окна
         params = 'left=500, top=100, height=300, width=';
