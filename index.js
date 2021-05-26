@@ -94,7 +94,6 @@ app.post('/hydraulic_calc', function(request, response) {
     // По окончании расчетов отправить результаты клиенту
     calc_prog.on('exit', function () {
         let result = JSON.parse(fs.readFileSync('./calc/output.json'));
-        // console.log(result);
         
         response.send({
             data: JSON.stringify(result)
@@ -110,31 +109,14 @@ app.post('/hydraulic_calc', function(request, response) {
 
 
 // Получение данных для сохранения
-app.post('/save', function(request, response) {
+app.post('/save_schema', function(request, response) {
+    // Запись полученной информации в файл
+    fs.writeFileSync(`./networks/schema_${request.body.global.name}.json`, JSON.stringify(request.body));
 
-    // Сохраняем глобальные переменные
-    fs.writeFileSync('networks/global.txt', `${request.body.id}\n${request.body.center.lat}\t${request.body.center.lng}`);
-
-    // Сохранение данных о геообъектах
-    fs.writeFileSync('networks/objects.txt', '');
-    for (let [key, value] of Object.entries(request.body.vertices)) {
-        fs.appendFileSync('networks/objects.txt', `${key}\n${value.type}\n`);
-        for (let data of Object.values(value.info)) {
-            fs.appendFileSync('networks/objects.txt', `${data}\n`);
-        }
-        fs.appendFileSync('networks/objects.txt', `${value.coord.lat}\t${value.coord.lng}\n`);
-    }
-
-    // Сохранение данных о пайпах
-    fs.writeFileSync('networks/pipes.txt', '');
-    for (let [key, value] of Object.entries(request.body.edges)) {
-        fs.appendFileSync('networks/pipes.txt', `${key}\n${value.info.activity}\n`);
-        for (let i = 0; i < value.coords.length; i++)
-            fs.appendFileSync('networks/pipes.txt', `${value.coords[i].lat}\t${value.coords[i].lng}\n`);
-        fs.appendFileSync('networks/pipes.txt', '#\n');
-    }
-
-    response.send({});
+    // Уведомление пользователя о сохранении
+    response.send({
+        status: 0
+    });
 });
 
 server.listen(5000);

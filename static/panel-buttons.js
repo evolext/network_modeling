@@ -47,6 +47,9 @@ function exitMode() {
     // Скрытие панели расчетов
     document.getElementById("calcPanel").style.display = 'none';
 
+    // Блокировка кнопки сохранения схемы
+    document.getElementById('saveNetwork').disabled = true;
+
     // Очищение глобальных объектов и чистка рабочей повехности
     app.id = 0;
 
@@ -190,4 +193,114 @@ function hydraulic_calc() {
         alert('Гидравлические расчеты проведены успешно');
     })
     .catch(err => console.error(err));
+}
+
+
+// ----------------------------------- Управление загрузкой/выгрузкой схем ------------------------------------------
+
+
+// Показ всплывающего окна для получения названия сохраняемой схемы
+function saveNetwork() {
+    // <div id="message">
+    //     <p>Название схемы</p>
+    //     <input type="text">
+    //     <div>
+    //         <button>Сохранить</button>
+    //         <button>Отмена</button>
+    //     </div>
+    // </div>
+
+    let popup = document.createElement('div');
+    popup.setAttribute('id', 'savePopup');
+
+    let p = document.createElement('p');
+    p.innerText = 'Название схемы';
+
+    let input = document.createElement('input');
+    
+    let button_save = document.createElement('button');
+    button_save.innerText = 'Сохранить';
+    button_save.onclick = confirm_save;
+
+    let button_cancel = document.createElement('button');
+    button_cancel.innerText = 'Отменить';
+    button_cancel.onclick = cancel_save;
+
+    let button_container = document.createElement('div');
+    button_container.append(button_save, button_cancel);
+    popup.append(p, input, button_container);
+
+    // Запрос у пользователя названия схемы
+    document.getElementById('blackout').before(popup);
+    document.getElementById('blackout').style.display = 'block';
+}
+
+
+// Сохранение схемы на сервере
+function confirm_save() {
+    let schema_name = document.querySelector('#savePopup input').value;
+    if (schema_name != "") {
+        // Подготовка данных для отправки
+        schema = {
+            "global": {},
+            "objects": {
+                "nodes": [],
+                "pipes": [],
+                "params": []
+            }
+        }
+
+        // Текущие значения глобальных переменных 
+        schema['global'].name = schema_name;
+        schema['global'].mode = app.mode;
+        schema['global'].id = app.id;
+        schema['global'].center = app.map.getCenter();
+
+        // Данные об объектах схемы (id, тип, координаты центра)
+        for (let obj of app.geoObjects) {
+            schema['objects']['nodes'].push({
+                "id": obj.id,
+                'type': obj.type,
+                "point": obj.value.getLatLng()
+            });
+        }
+
+        // Данные об участках схемы (id, список коориднат узлов)
+        for (let [key, value] of app.pipes.entries()) {
+            schema['objects']['pipes'].push({
+                "id": key,
+                "points": value.getLatLngs()
+            });
+        }
+
+        // Данные об гидравлических характеристиках объектов сети
+        for (let [key, value] of app.objectsInfo) {
+            // (value и так содержит все свйоства, кроме id объекта, поэтому просто создаем копию value и дополняем id)
+            schema['objects']['params'].push(Object.assign({"id": key}, value));
+        }
+
+        // Отправка данных на сервер для последующего сохранения
+        fetch('/save_schema', {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(schema)
+        })
+        .then(response => response.json())
+        .then(function (data) {
+            // Уведомление пользователя об успешном сохранении схемы
+            if (data.status == 0) {
+                alert('Схема сохранена успешно');
+                cancel_save();
+            }
+        })
+        .catch(err => console.error(err));
+    }
+}
+
+// Закрытие высплывающего окна
+function cancel_save() {
+    document.getElementById('savePopup').remove();
+    document.getElementById('blackout').style.display = 'none';
 }

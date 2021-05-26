@@ -5,6 +5,10 @@
 // Добавление объекта на карту в указанное место
 function addObjectOnPoint(obj_type, e) {
     initObject(obj_type, e.latlng);
+    
+    // Активация кнопки сохранения схемы
+    document.getElementById('saveNetwork').disabled = false;
+
     // Удаляем обработчик события
     app.map.off('click');
 }

@@ -30,6 +30,7 @@
 </head>
 <body>
     <div id="wrapper">
+        <div id="blackout"></div>
         <div id="map"></div>
         <div id="toolsPanel">
             <div id="addingNodes" hidden>
@@ -144,7 +145,6 @@
         if (index >= 0) {
             app.geoObjects[index].value.removeFrom(app.map);
             app.geoObjects.splice(index, 1);
-            app.objectsInfo.delete(obj_id);
         }
         // Удаление пайпа
         else {
@@ -154,7 +154,14 @@
 
             app.pipes.delete(obj_id);
             app.pipesArrows.delete(obj_id);
-            app.pipesInfo.delete(obj_id);
+        }
+
+        // Удаление информации об объекте
+        app.objectsInfo.delete(obj_id);
+
+        // Если все геообъекты удалены - то кнопка сохранения схемы блокируется
+        if (app.geoObjects.length == 0 && app.pipes.size == 0) {
+            document.getElementById('saveNetwork').disabled = true;
         }
     });
 
@@ -338,8 +345,6 @@
                 }   
             }
         });
-
-
     });
 
 
