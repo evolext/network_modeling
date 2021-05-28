@@ -53,7 +53,7 @@
                 <h1>Режим работы</h1>
                 <button id="saveNetwork" onclick="saveNetwork()" disabled hidden>Сохранить изменения</button>
                 <button id="createNetwork" onclick="createNetwork()" hidden>Создать</button>
-                <button id="loadNetwork" disabled hidden>Загрузить</button><!-- onclick="loadNetwork() -->
+                <button id="loadNetwork" onclick="get_network_list()" hidden>Загрузить</button>
                 <button id="createWaterNetwork" onclick="chooseMode(true)"> Схема водоснабжения </button>
                 <button id="createHeatNetwork"   onclick="chooseMode(false)">Схема теплоснабжения</button>
                 <button id="cancelCreateNetwork" onclick="exitMode()" hidden>Выйти из режима</button>

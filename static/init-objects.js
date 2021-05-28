@@ -17,21 +17,22 @@ function addObjectOnPoint(obj_type, e) {
     @type - тип геообъекта
     @coordinates - координаты центра объекта
     @key - он же id объекта, в общем случае устанавливается автоматически,
-           но при загрузке схемы указывается тот, что был у объекта на момент сейва
+           но при загрузке схемы указывается тот, что был у объекта на момент сохранения
     @mode: 0 - выключенный объект, 1 - включенный объект
 */
 function initObject(type, coordinates, key=undefined, mode=1) {
-    // Блокируем возможность перетаскивать объект
-    let drag = false;
-    if (typeof key === 'undefined')
-        key = app.id++;
 
+    // key не инициализируется при развертывании схемы
+    if (typeof key === 'undefined') {
+        key = app.id++;
+    }
+        
     // Создание кастомной иконки объекта
     let objIcon = createIcon(type, mode);
 
     var obj = L.marker(coordinates, {
         icon: objIcon,
-        draggable: drag
+        draggable: false
     }).addTo(app.map);
 
     // Контекстное меню объекта

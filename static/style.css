@@ -243,7 +243,7 @@ input:checked + .slider:before {
     right: 0;
 }
 
-#savePopup {
+#savePopup, #schemaList {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -274,12 +274,32 @@ input:checked + .slider:before {
     margin-bottom: 10px;
 }
 
-#savePopup button {
+#savePopup button, #schemaList button {
     font-weight: 600;
     margin-left: 5px;
     margin-right: 5px;
 }
 
 #savePopup input:focus {
+    outline: none;
+}
+
+#schemaList select {
+    width: 100%;
+}
+
+#schemaList p {
+    margin-bottom: 5px;
+}
+
+#schemaList select {
+    margin-bottom: 5px;
+}
+
+#schemaList span {
+    margin-bottom: 10px;
+}
+
+#schemaList select:focus {
     outline: none;
 }
