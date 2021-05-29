@@ -138,7 +138,8 @@ function hydraulic_calc() {
     data = {
         "objects": [],
         "pipes": [],
-        "params": []
+        "params": [],
+        "modeling": false,
     }
 
     // id узлов и их коориднаты
@@ -165,6 +166,11 @@ function hydraulic_calc() {
 
     // Гидравлические характеристики объектов сети
     for (let [key, value] of app.objectsInfo) {
+        // Установка флага, что требуется моделирование расхода
+        if (!app.pipes.has(key) && typeof value.q === 'object') {
+            data["modeling"] = true;
+        }
+
         // (value и так содержит все свйоства, кроме id объекта, поэтому просто создаем копию value и дополняем id)
         data["params"].push(Object.assign({"id": key}, value));
     }

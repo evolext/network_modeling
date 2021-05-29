@@ -76,42 +76,42 @@ td {
 
 
 #buttonAddSource {
-    background-image: url('./images/panel_icons/water/source.png');
+    background-image: url('../images/panel_icons/water/source.png');
     background-size: 30px;
     background-position-x: 3px;
     background-position-y: 3px;
 }
 
 #buttonAddReservoir {
-    background-image: url('./images/panel_icons/water/reservoir.png');
+    background-image: url('../images/panel_icons/water/reservoir.png');
     background-size: 33px;
     background-position-x: 2px;
     background-position-y: 0px;
 }
 
 #buttonAddTower {
-    background-image: url('./images/panel_icons/water/tower.png');
+    background-image: url('../images/panel_icons/water/tower.png');
     background-size: 33px;
     background-position-x: 2px;
     background-position-y: 2px;
 }
 
 #buttonAddStandpipe {
-    background-image: url('./images/panel_icons/water/standpipe.png');
+    background-image: url('../images/panel_icons/water/standpipe.png');
     background-size: 28px;
     background-position-x: 3px;
     background-position-y: -1px;
 }
 
 #buttonAddHydrant {
-    background-image: url('./images/panel_icons/water/hydrant.png');
+    background-image: url('../images/panel_icons/water/hydrant.png');
     background-size: 25px;
     background-position-x: 5px;
     background-position-y: 1px;
 }
 
 #buttonAddWell {
-    background-image: url('./images/panel_icons/water/well.png');
+    background-image: url('../images/panel_icons/water/well.png');
     background-size: 25px;
     background-position-x: 4px;
     background-position-y: 1px;
@@ -122,14 +122,14 @@ td {
 }
 
 #buttonAddBranch {
-    background-image: url('./images/panel_icons/water/branch.png');
+    background-image: url('../images/panel_icons/water/branch.png');
     background-size: 18px;
     background-position-x: 7px;
     background-position-y: 4px;
 }
 
 #buttonAddConsumer {
-    background-image: url('./images/panel_icons/water/consumer.png');
+    background-image: url('../images/panel_icons/water/consumer.png');
     background-size: 23px;
     background-position-x: 4px;
     background-position-y: 2px;

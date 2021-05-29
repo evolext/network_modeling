@@ -2,46 +2,122 @@
 <head>
     <meta charset="UTF-8">
     <title>Информрация</title>
-    <style>
-        caption {
-            margin-bottom: 10px;
-        }
-        table {
-            border-spacing: 0;
-            border-collapse: collapse;
-            width: 280px;
-            margin: 0;
-            padding: 0;
-        }
-        td {
-            border: 1px solid black;
-            padding: 0;
-        }
-        tr td:first-child {
-            padding-left: 5px;
-        }
-        input {
-            border: none;
-            width: 96%;
-            margin: 0;
-            text-align: center;
-        }
-        input:focus {
-            outline: none;
-        }
-    </style>
+    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Ubuntu+Mono" />
+    <link rel="stylesheet" type="text/css" href="./styles/info_obj_style.css">
 </head>
 <body>
     <table>
         <caption>Гидравлические характеристики</caption>
         <tr>
             <td><span>Расход, л/с:</span></td>
-            <td><input type="text" id="consumption"></td>
+            <td id="second_column">
+                <input type="text" id="consumption">
+                <select hidden onchange="choose_distrib()">
+                    <option value="rav">Равномерное распределение</option>
+                    <option value="weib">Распределение Вейбулла</option>
+                    <option value="gamma">Гамма-распределение</option>
+                    <option value="beta">Бета-распределение</option>
+                </select>                
+            </td>
+            <td>
+                <div style="display: flex;">
+                    <input type="checkbox" id="checkbox" onclick="display_distrib()">
+                    <span>Моделировать</span>
+                </div>
+            </td>
+        </tr>
+        <tr id="distrib_params" hidden>
+            <td></td>
+            <td></td>
         </tr>
         <tr>
             <td></span>Напор, м:</span></td>
             <td><input type="text" id="pressure"></td>
         </tr>
     </table>
+    <script>
+        function display_distrib() {
+            if (document.getElementById('checkbox').checked) {
+                // Изменение размеров окна и элементов таблицы
+                document.querySelector('table').style.width = '440px';
+                document.getElementById('second_column').style.width = '200px';
+
+                // Отображение элемента выбора распределения
+                document.getElementById('consumption').hidden = true;
+                document.querySelector('select').hidden = false;
+                document.querySelector('select').value = "rav";
+                document.getElementById('distrib_params').hidden = false;
+                choose_distrib('rav');
+            }
+            else {
+                // Обратное изменение размеров окна
+                document.getElementById('second_column').style.width = '140px';
+                document.querySelector('table').style.width = '380px';
+                
+                // Скрытие элемента выбора распределения
+                document.getElementById('consumption').hidden = false;
+                document.querySelector('select').hidden = true;
+                document.getElementById('distrib_params').hidden = true;
+
+                // Удаление элементов управления параметрами распределения
+                let container = document.querySelector('#distrib_params td:nth-child(2)'); 
+                while (container.firstChild) {
+                    container.removeChild(container.lastChild);
+                }
+
+            }
+        }
+
+        //  @dstrib - вид распределения
+        function choose_distrib() {
+            let container = document.querySelector('#distrib_params td:nth-child(2)');
+            while (container.firstChild) {
+                container.removeChild(container.lastChild);
+            }
+
+            let params_names;
+            let displayed_names;
+
+            let distrib = document.querySelector('select').value;
+
+            // Формирование списка параметров
+            switch (distrib) {
+                case "rav":
+                    params_names = ['a', 'b'];
+                    displayed_names = ['a', 'b'];
+                    break;
+                case "weib":
+                    params_names = ['k'];
+                    displayed_names = ['k'];
+                    break;
+                case "gamma":
+                    params_names = ['k', 'theta'];
+                    displayed_names = ['k', '\u03B8'];
+                    break;
+                case "beta":
+                    params_names = ['a', 'b'];
+                    displayed_names = ['a', 'b'];
+                    break;
+            }
+
+            if (distrib == 'beta') {
+                container.innerHTML =
+                    "<span id='alpha'>\u03b1 = <input type='text' value='2'></span>" + 
+                    "<span id='beta'>\u03b2 = <input type='text' value='2'></span>";
+            }
+            
+            // Отображение элементов управления значениями параметров
+            for (let i = 0; i < params_names.length; i++) {
+                let span = document.createElement('span');
+                span.innerText = `${displayed_names[i]} = `;
+                span.setAttribute('id', params_names[i]);
+
+                let input = document.createElement('input');
+                input.setAttribute('type', 'text');
+                span.append(input);
+                container.append(span);
+            }
+        }
+    </script>
 </body>
 </html>

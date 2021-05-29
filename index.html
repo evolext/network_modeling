@@ -3,7 +3,7 @@
     <meta charset="UTF-8">
     <title>UN modeling</title>
     <link rel="shortcut icon" type="image/png" href="./images/panel_icons/heat/source.png"/>
-    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="stylesheet" type="text/css" href="./styles/index_style.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ==" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js" integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew==" crossorigin=""></script>
     
@@ -280,8 +280,7 @@
         let info = app.objectsInfo.get(obj_id);
 
         // Настройка вида открывающегося окна
-        params = 'left=500, top=100, height=300, width=';
-        params += type ? '300' : '560';
+        params = 'left=500, top=100, height=300, width=460';
 
         url = type ? "./info_object.html" : "./info_pipe.html";
     
@@ -292,14 +291,35 @@
         new_window.addEventListener('load', function() {
 
             // Общие данные и для узлов, и для участков
-            if (typeof info.q !== 'undefined') {
-                new_window.document.getElementById("consumption").value = info.q;
-            }
-            
             if (typeof info.h !== 'undefined') {
                 new_window.document.getElementById("pressure").value = info.h;
             }
 
+            if (typeof info.q !== 'undefined') {
+                // Для узлов, в случае моделирования
+                if (type && typeof info.q !== 'string') {
+                    new_window.document.getElementById('consumption').hidden = true;
+                    new_window.document.getElementById('checkbox').setAttribute('checked', 'checked');
+                    new_window.document.getElementById('distrib_params').hidden = false;
+                    
+                    let select = new_window.document.querySelector('select');
+                    select.hidden = false;
+                    select.value = info.q.distrib;
+
+                    new_window.choose_distrib();
+
+                    for (let [key, value] of Object.entries(info.q)) {
+                        if (key != 'distrib') {
+                            new_window.document.getElementById(key).querySelector('input').value = value;
+                        }
+                    }
+                }
+                else {
+                    new_window.document.getElementById("consumption").value = info.q;
+                }
+            }
+            
+            
             // Данные, указываемые только для участков
             if (!type) {
                 
@@ -333,16 +353,40 @@
         // Обновляем данные после закрытия
         new_window.addEventListener('unload', function() {
             if (new_window.document.getElementById("consumption")) {
-                info.q = new_window.document.getElementById("consumption").value;
-                info.h = new_window.document.getElementById("pressure").value;
+                
+                // Данные по узлам
+                if (type)
+                {
+                    // Если значения моделируются, то сохраняется информация для моделирвания
+                    if (new_window.document.getElementById('checkbox').checked) {
+                        // Вид распределения
+                        info.q = {
+                            distrib: new_window.document.querySelector('select').value,
+                        }
 
+                        // Параметры распределения
+                        let param_cell = new_window.document.querySelector('#distrib_params td:nth-child(2)');
+
+                        // Чтение названия параметра и его значения
+                        for (let param of param_cell.childNodes) {
+                            info.q[param.id] = param.querySelector('input').value;
+                        }
+                    }
+                    // Если данные известны
+                    else {
+                        info.q = new_window.document.getElementById("consumption").value;
+                    }                
+                }
                 // Данные по участкам
-                if (!type) {
+                else {
+                    info.q = new_window.document.getElementById("consumption").value;
                     info.length = new_window.document.getElementById("length").value;
                     info.material = new_window.document.getElementById("material").value;
                     info.diameter = new_window.document.getElementById("diameter").value;
                     info.velocity = new_window.document.getElementById("speed").value;
-                }   
+                }
+                
+                info.h = new_window.document.getElementById("pressure").value;
             }
         });
     });

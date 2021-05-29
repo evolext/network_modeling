@@ -1,0 +1,66 @@
+body {
+    font-family: "Ubuntu Mono";
+}
+caption {
+    margin-bottom: 10px;
+}
+table {
+    border-spacing: 0;
+    border-collapse: collapse;
+    width: 440px;
+    margin: 0;
+    padding: 0;
+}
+td {
+    border: 1px solid black;
+    padding: 0;
+}
+tr td:first-child {
+    padding-left: 5px;
+    width: 100px;
+}
+tr td:nth-child(2) {
+    width: 140px;
+}
+tr td:nth-child(3) {
+    border: none;
+}
+input[type="text"] {
+    border: 1px solid black;
+}
+#consumption, #pressure {
+    border: none;
+    width: 96%;
+    margin: 0;
+    text-align: center;
+}
+input:focus {
+    outline: none;
+}
+select {
+    border: none;
+}
+select:focus {
+    outline: none;
+}
+input[type="checkbox"] {
+    width: auto;
+    margin: auto;
+    margin-left: 5px;
+    margin-right: 5px;
+}
+#distrib_params td {
+    border: none;
+}
+#distrib_params span {
+    display: block;
+    margin-left: 2em;
+    margin-top: 5px;
+}
+#distrib_params span:last-child {
+    margin-bottom: 5px;
+}
+#distrib_params span input {
+    text-align: right;
+    width: 5ch;
+}
