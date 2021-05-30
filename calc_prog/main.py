@@ -1,7 +1,7 @@
 import json
 import numpy as np
 import GGA
-
+from scipy.special import gamma as gamma_func
 
 # Плотность воды, кг/м3
 p_water = 997
@@ -27,10 +27,6 @@ s0 = {
 }
 
 
-# Число моделируемых значений
-Nr = 10000
-
-
 # Функция нахождения индекса строки или столбца с указанным
 #   @mode - режим поиска (True = "по строкам", False = "по столбцам")
 def get_index(mtx, id, mode):
@@ -47,50 +43,87 @@ def get_index(mtx, id, mode):
     return -1
 
 
-# Моделирование незивестных значений
-def generate(data):
+# # Моделирование незивестных значений
+# def generate(data):
+#     # Вид распределения
+#     distrib = data['distrib']
+#
+#     # Равномерное распределение
+#     if distrib == 'rav':
+#         try:
+#             a = float(data['a'])
+#             b = float(data['b'])
+#             return np.random.uniform(a, b, Nr)
+#         except KeyError:
+#             print('Параметры равномерного распределения указаны неверно')
+#
+#     # Распределение Вейбулла
+#     elif distrib == 'weib':
+#         try:
+#             k = float(data['k'])
+#             return np.random.weibull(k, Nr)
+#         except KeyError:
+#             print('Параметры распределения Вейбулла указаны неверно')
+#
+#     # Гамма-распределение
+#     elif distrib == 'gamma':
+#         try:
+#             k = float(data['k'])
+#             theta = float(data['theta'])
+#             return np.random.gamma(k, theta, Nr)
+#         except KeyError:
+#             print('Параметры Гамма-распределения указаны неверно')
+#
+#     # Бета-распределение
+#     elif distrib == 'beta':
+#         try:
+#             alpha = float(data['alpha'])
+#             beta = float(data['beta'])
+#
+#             a = float(data['a'])
+#             b = float(data['b'])
+#
+#             help = np.random.beta(alpha, beta, Nr)
+#
+#             # Перевод из интервала [0; 1] в [a; b]
+#             return np.array([a + (b - a) * x for x in help])
+#         except KeyError:
+#             print('Параметры бета-распределения указаны неверно')
+#
+#     else:
+#         raise Exception('Неверно указано распределение')
+
+
+# Мат. ожидания законов распределения
+def mean(data):
     # Вид распределения
     distrib = data['distrib']
 
     # Равномерное распределение
     if distrib == 'rav':
         try:
-            a = float(data['a'])
-            b = float(data['b'])
-            return np.random.uniform(a, b, Nr)
+            return (float(data['a']) + float(data['b'])) / 2
         except KeyError:
             print('Параметры равномерного распределения указаны неверно')
 
     # Распределение Вейбулла
     elif distrib == 'weib':
         try:
-            k = float(data['k'])
-            return np.random.weibull(k, Nr)
+            return gamma_func(1 + 1 / float(data['k']))
         except KeyError:
             print('Параметры распределения Вейбулла указаны неверно')
 
     # Гамма-распределение
     elif distrib == 'gamma':
         try:
-            k = float(data['k'])
-            theta = float(data['theta'])
-            return np.random.gamma(k, theta, Nr)
+            return float(data['k']) * float(data['theta'])
         except KeyError:
             print('Параметры Гамма-распределения указаны неверно')
 
-    # Бета-распределение
+    # Бета-распределение с переводом интервала из [0; 1] в [a; b]
     elif distrib == 'beta':
         try:
-            alpha = float(data['alpha'])
-            beta = float(data['beta'])
-
-            a = float(data['a'])
-            b = float(data['b'])
-
-            help = np.random.beta(alpha, beta, Nr)
-
-            # Перевод из интервала [0; 1] в [a; b]
-            return np.array([a + (b - a) * x for x in help])
+            return float(data['alpha']) * (float(data['a']) + float(data['b'])) / (float(data['alpha']) + float(data['beta']))
         except KeyError:
             print('Параметры бета-распределения указаны неверно')
 
@@ -144,69 +177,22 @@ pressures = {}
 resists = {}
 
 
-# Определение, требуется ли моделирование
-if data['modeling']:
-
-    # Узлы с неизвестными значениями расхода
-    missed_costs = {}
-
-    for p in data['params']:
-        if p['id'] in vertices_id and 'q' in p and p['q'] != '':
-            if type(p['q']) is dict:
-                # Тут будет моделирвоание значений
-                missed_costs[p['id']] = generate(data=p['q'])
-            else:
-                costs[p['id']] = -float(p['q'])
-        elif p['id'] in vertices_id and 'h' in p and p['h'] != '':
-            pressures[p['id']] = float(p['h']) * p_water * g
-        elif p['id'] in edges_id:
-            # Произведение соответствующего s0, длины участка и поправочного коэф.
-            resists[p['id']] = s0[p['material']][p['diameter']] * float(p['length']) * 0.852 * pow(
-                1 + 0.867 / float(p['velocity']), 0.3)
-
-    # Выполняем Nr вычислений
-    P = {}
-    q = {}
-
-    for id in vertices_id:
-        P[id] = []
-    for id in edges_id:
-        q[id] = []
-
-    for i in range(5):
-        # Берем одну реализацию
-        for key, values in missed_costs.items():
-            costs[key] = -values[i]
-
-        # Один из множества результатов
-        P_tmp, q_tmp = GGA.solve(matrix, costs, pressures, resists)
-
-        for key, value in P_tmp.items():
-            P[key].append(value)
-        for key, value in q_tmp.items():
-            q[key].append(value)
-
-    # Нахождение оценки искомых величин
-    for key, value in P.items():
-        P[key] = np.mean(value)
-    for key, value in q.items():
-        q[key] = np.mean(value)
-
-
-# Решение без моделирования
-else:
-
-    for p in data['params']:
-        if p['id'] in vertices_id and 'q' in p and p['q'] != '':
+for p in data['params']:
+    if p['id'] in vertices_id and 'q' in p and p['q'] != '':
+        # Если исходные данные не указаны
+        if type(p['q']) is dict:
+            costs[p['id']] = -mean(data=p['q'])
+        else:
             costs[p['id']] = -float(p['q'])
-        elif p['id'] in vertices_id and 'h' in p and p['h'] != '':
-            pressures[p['id']] = float(p['h']) * p_water * g
-        elif p['id'] in edges_id:
-            # Произведение соответствующего s0, длины участка и поправочного коэф.
-            resists[p['id']] = s0[p['material']][p['diameter']] * float(p['length']) * 0.852 * pow(
-                1 + 0.867 / float(p['velocity']), 0.3)
+    elif p['id'] in vertices_id and 'h' in p and p['h'] != '':
+        pressures[p['id']] = float(p['h']) * p_water * g
+    elif p['id'] in edges_id:
+        # Произведение соответствующего s0, длины участка и поправочного коэф.
+        resists[p['id']] = s0[p['material']][p['diameter']] * float(p['length']) * 0.852 * pow(
+            1 + 0.867 / float(p['velocity']), 0.3)
 
-    P, q = GGA.solve(matrix, costs, pressures, resists)
+
+P, q = GGA.solve(matrix, costs, pressures, resists)
 
 
 # Расход на источнике
@@ -226,3 +212,49 @@ for param in data['params']:
 output = open('./calc/output.json', 'w')
 json.dump(data, output)
 output.close()
+
+
+# # Решение через полное моделирование
+# # Узлы с неизвестными значениями расхода
+# missed_costs = {}
+#
+# for p in data['params']:
+#     if p['id'] in vertices_id and 'q' in p and p['q'] != '':
+#         if type(p['q']) is dict:
+#             missed_costs[p['id']] = generate(data=p['q'])
+#         else:
+#             costs[p['id']] = -float(p['q'])
+#     elif p['id'] in vertices_id and 'h' in p and p['h'] != '':
+#         pressures[p['id']] = float(p['h']) * p_water * g
+#     elif p['id'] in edges_id:
+#         # Произведение соответствующего s0, длины участка и поправочного коэф.
+#         resists[p['id']] = s0[p['material']][p['diameter']] * float(p['length']) * 0.852 * pow(
+#             1 + 0.867 / float(p['velocity']), 0.3)
+#
+# # Выполняем Nr вычислений
+# P = {}
+# q = {}
+#
+# for id in vertices_id:
+#     P[id] = []
+# for id in edges_id:
+#     q[id] = []
+#
+# for i in range(Nr):
+#     # Берем одну реализацию
+#     for key, values in missed_costs.items():
+#         costs[key] = -values[i]
+#
+#     # Один из множества результатов
+#     P_tmp, q_tmp = GGA.solve(matrix, costs, pressures, resists)
+#
+#     for key, value in P_tmp.items():
+#         P[key].append(value)
+#     for key, value in q_tmp.items():
+#         q[key].append(value)
+#
+# # Нахождение оценки искомых величин
+# for key, value in P.items():
+#     P[key] = np.mean(value)
+# for key, value in q.items():
+#     q[key] = np.mean(value)

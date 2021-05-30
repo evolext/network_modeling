@@ -5,9 +5,6 @@
 // Добавление объекта на карту в указанное место
 function addObjectOnPoint(obj_type, e) {
     initObject(obj_type, e.latlng);
-    
-    // Активация кнопки сохранения схемы
-    document.getElementById('saveNetwork').disabled = false;
 
     // Удаляем обработчик события
     app.map.off('click');
@@ -108,8 +105,6 @@ function createCtxMenu(type, obj_id){
 
     switch(type) 
     {
-        case 'consumer':
-            break;
         case 'pipe':
             ctxMenu += "<button class='editPipe popupButton' data-id='" + obj_id + "'>Редактировать</button>";
             break;

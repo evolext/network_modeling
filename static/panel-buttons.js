@@ -82,6 +82,7 @@ function createNetwork() {
 
     // Изменение панели управления схемой
     document.getElementById("createNetwork").hidden = true;
+    document.getElementById("loadNetwork").hidden = true;
     document.getElementById("saveNetwork").hidden = false;
 
     // Отображение панели инструментов
@@ -166,11 +167,6 @@ function hydraulic_calc() {
 
     // Гидравлические характеристики объектов сети
     for (let [key, value] of app.objectsInfo) {
-        // Установка флага, что требуется моделирование расхода
-        if (!app.pipes.has(key) && typeof value.q === 'object') {
-            data["modeling"] = true;
-        }
-
         // (value и так содержит все свйоства, кроме id объекта, поэтому просто создаем копию value и дополняем id)
         data["params"].push(Object.assign({"id": key}, value));
     }
@@ -428,6 +424,7 @@ function load_network() {
 
         alert('Схема загружена успешно');
         cancel_load();
+        createNetwork();
     })
     .catch(err => console.error(err));
 }
