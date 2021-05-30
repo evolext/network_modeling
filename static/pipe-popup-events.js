@@ -60,7 +60,7 @@ $('#map').on('click', '.removePipe', function() {
     // Удаление всей соответствующей информации
     app.pipes.delete(pipe_id);
     app.pipesArrows.delete(pipe_id);
-    app.pipesInfo.delete(pipe_id);
+    app.objectsInfo.delete(pipe_id);
 
     app.polylineEditor = null;
     app.editableId = null;

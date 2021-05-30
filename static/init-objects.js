@@ -208,5 +208,6 @@ function ParamInfo(obj_flag = true) {
         this.material = "cost_iron";
         this.diameter = "150";
         this.velocity = "0.3";
+        this.resist = undefined;
     }
 }

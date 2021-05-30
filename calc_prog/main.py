@@ -27,6 +27,10 @@ s0 = {
 }
 
 
+# Число моделируемых значений
+Nr = 10000
+
+
 # Функция нахождения индекса строки или столбца с указанным
 #   @mode - режим поиска (True = "по строкам", False = "по столбцам")
 def get_index(mtx, id, mode):
@@ -41,6 +45,57 @@ def get_index(mtx, id, mode):
             if id == mtx[0][j]:
                 return j
     return -1
+
+
+# Моделирование незивестных значений
+def generate(data):
+    # Вид распределения
+    distrib = data['distrib']
+
+    # Равномерное распределение
+    if distrib == 'rav':
+        try:
+            a = float(data['a'])
+            b = float(data['b'])
+            return np.random.uniform(a, b, Nr)
+        except KeyError:
+            print('Параметры равномерного распределения указаны неверно')
+
+    # Распределение Вейбулла
+    elif distrib == 'weib':
+        try:
+            k = float(data['k'])
+            return np.random.weibull(k, Nr)
+        except KeyError:
+            print('Параметры распределения Вейбулла указаны неверно')
+
+    # Гамма-распределение
+    elif distrib == 'gamma':
+        try:
+            k = float(data['k'])
+            theta = float(data['theta'])
+            return np.random.gamma(k, theta, Nr)
+        except KeyError:
+            print('Параметры Гамма-распределения указаны неверно')
+
+    # Бета-распределение
+    elif distrib == 'beta':
+        try:
+            alpha = float(data['alpha'])
+            beta = float(data['beta'])
+
+            a = float(data['a'])
+            b = float(data['b'])
+
+            help = np.random.beta(alpha, beta, Nr)
+
+            # Перевод из интервала [0; 1] в [a; b]
+            return np.array([a + (b - a) * x for x in help])
+        except KeyError:
+            print('Параметры бета-распределения указаны неверно')
+
+    else:
+        raise Exception('Неверно указано распределение')
 
 
 vertices = {}
@@ -75,14 +130,11 @@ for pipe in data['pipes']:
         elif obj['point'] == pipe['point_end']:
             matrix[get_index(matrix, obj['id'], True)][get_index(matrix, pipe['id'], False)] = -1
 
-# for i in range(len(matrix)):
-#     for j in range(len(matrix[0])):
-#         print(matrix[i][j], end='\t')
-#     print()
 
 # id узлов и участков сети
 vertices_id = np.array(matrix)[1:, 0]
 edges_id = np.array(matrix)[0, 1:]
+
 
 # Данные по расходам и давлениям на узлах
 costs = {}
@@ -91,32 +143,85 @@ pressures = {}
 # Гидравлические сопротивления участков
 resists = {}
 
-for p in data['params']:
-    if p['id'] in vertices_id and 'q' in p and p['q'] != '':
-        costs[p['id']] = -float(p['q'])
-    elif p['id'] in vertices_id and 'h' in p and p['h'] != '':
-        pressures[p['id']] = float(p['h']) * p_water * g
-    elif p['id'] in edges_id:
-        # Произведение соответствующего s0, длины участка и поправочного коэф.
-        resists[p['id']] = s0[p['material']][p['diameter']] * float(p['length']) * 0.852 * pow(1 + 0.867 / float(p['velocity']), 0.3)
+
+# Определение, требуется ли моделирование
+if data['modeling']:
+
+    # Узлы с неизвестными значениями расхода
+    missed_costs = {}
+
+    for p in data['params']:
+        if p['id'] in vertices_id and 'q' in p and p['q'] != '':
+            if type(p['q']) is dict:
+                # Тут будет моделирвоание значений
+                missed_costs[p['id']] = generate(data=p['q'])
+            else:
+                costs[p['id']] = -float(p['q'])
+        elif p['id'] in vertices_id and 'h' in p and p['h'] != '':
+            pressures[p['id']] = float(p['h']) * p_water * g
+        elif p['id'] in edges_id:
+            # Произведение соответствующего s0, длины участка и поправочного коэф.
+            resists[p['id']] = s0[p['material']][p['diameter']] * float(p['length']) * 0.852 * pow(
+                1 + 0.867 / float(p['velocity']), 0.3)
+
+    # Выполняем Nr вычислений
+    P = {}
+    q = {}
+
+    for id in vertices_id:
+        P[id] = []
+    for id in edges_id:
+        q[id] = []
+
+    for i in range(5):
+        # Берем одну реализацию
+        for key, values in missed_costs.items():
+            costs[key] = -values[i]
+
+        # Один из множества результатов
+        P_tmp, q_tmp = GGA.solve(matrix, costs, pressures, resists)
+
+        for key, value in P_tmp.items():
+            P[key].append(value)
+        for key, value in q_tmp.items():
+            q[key].append(value)
+
+    # Нахождение оценки искомых величин
+    for key, value in P.items():
+        P[key] = np.mean(value)
+    for key, value in q.items():
+        q[key] = np.mean(value)
 
 
-# Нахождение решения
-P, q = GGA.solve(matrix, costs, pressures, resists)
+# Решение без моделирования
+else:
+
+    for p in data['params']:
+        if p['id'] in vertices_id and 'q' in p and p['q'] != '':
+            costs[p['id']] = -float(p['q'])
+        elif p['id'] in vertices_id and 'h' in p and p['h'] != '':
+            pressures[p['id']] = float(p['h']) * p_water * g
+        elif p['id'] in edges_id:
+            # Произведение соответствующего s0, длины участка и поправочного коэф.
+            resists[p['id']] = s0[p['material']][p['diameter']] * float(p['length']) * 0.852 * pow(
+                1 + 0.867 / float(p['velocity']), 0.3)
+
+    P, q = GGA.solve(matrix, costs, pressures, resists)
 
 
 # Расход на источнике
 source_id = next(obj['id'] for obj in data['objects'] if obj['type'] == 'source')
 source_param_indx = next(i for i in range(len(data['params'])) if data['params'][i]['id'] == source_id)
-data['params'][source_param_indx]['q'] = - np.round(sum(list(costs.values())), 4)
+data['params'][source_param_indx]['q'] = str(-1 * np.round(sum(list(costs.values())), 4))
 
 
 # Вывод результатов
 for param in data['params']:
     if param['id'] in edges_id:
-        param['q'] = np.round(q[param['id']], 4)
+        param['q'] = str(np.round(q[param['id']], 4))
+        param['resist'] = str(np.round(resists[param['id']], 4))
     elif param['id'] in vertices_id:
-        param['h'] = np.round(P[param['id']] / (p_water * g), 4)
+        param['h'] = str(np.round(P[param['id']] / (p_water * g), 4))
 
 output = open('./calc/output.json', 'w')
 json.dump(data, output)

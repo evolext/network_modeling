@@ -24,28 +24,24 @@ app.post('/hydraulic_calc', function(request, response) {
     fs.mkdirSync(__dirname + '/calc');
     fs.writeFileSync('./calc/input.json', JSON.stringify(request.body));
 
-    console.log(request.body);
+    // Запуск программы расчета
+    const calc_prog = spawn('./calc_prog/main.exe');
+    // Вывод ошибок на случай некорректного выполнения программы расчетов
+    calc_prog.stderr.on('data', (data) => {
+        console.error(`stderr: ${data}`);
+    });
 
-    // // Запуск программы расчета
-    // const calc_prog = spawn('./calc_prog/main.exe');
-    // // Вывод ошибок на случай некорректного выполнения программы расчетов
-    // calc_prog.stderr.on('data', (data) => {
-    //     console.error(`stderr: ${data}`);
-    // });
-
-    // // По окончании расчетов отправить результаты клиенту
-    // calc_prog.on('exit', function () {
-    //     let result = JSON.parse(fs.readFileSync('./calc/output.json'));
+    // По окончании расчетов отправить результаты клиенту
+    calc_prog.on('exit', function () {
+        let result = JSON.parse(fs.readFileSync('./calc/output.json'));
         
-    //     response.send({
-    //         data: JSON.stringify(result)
-    //     });
+        response.send({
+            data: JSON.stringify(result)
+        });
 
-    //     // Удаление созданных файлов
-    //     fs.rmdirSync(__dirname + '/calc', { recursive: true });
-    // });
-
-    response.send({});
+        // Удаление созданных файлов
+        fs.rmdirSync(__dirname + '/calc', { recursive: true });
+    });
 });
 
 

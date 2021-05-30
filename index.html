@@ -280,7 +280,8 @@
         let info = app.objectsInfo.get(obj_id);
 
         // Настройка вида открывающегося окна
-        params = 'left=500, top=100, height=300, width=460';
+        params = 'left=500, top=100, height=300, width=';
+        params += type ? '460' : '640';
 
         url = type ? "./info_object.html" : "./info_pipe.html";
     
@@ -337,6 +338,11 @@
                 // Скорость переносимого вещества
                 new_window.document.getElementById("slider").value = info.velocity;
                 new_window.document.getElementById("speed").value = info.velocity;
+
+                // Гидравлическое сопротивление участка
+                if (typeof info.resist !== 'undefined') {
+                    new_window.document.getElementById("resist").value = info.resist;
+                }
 
                 // Для участков передаем информацию о его реальной длине
                 let points = app.pipes.get(obj_id).getLatLngs();
