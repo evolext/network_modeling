@@ -139,8 +139,7 @@ function hydraulic_calc() {
     data = {
         "objects": [],
         "pipes": [],
-        "params": [],
-        "modeling": false,
+        "params": []
     }
 
     // id узлов и их коориднаты
