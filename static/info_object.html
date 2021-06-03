@@ -14,9 +14,9 @@
         </tr>
         <tr>
             <td><span>Расход, л/с:</span></td>
-            <td id="second_column">
+            <td id="secondColumn">
                 <input type="text" id="consumption">
-                <select hidden onchange="choose_distrib()">
+                <select hidden onchange="chooseDistrib()">
                     <option value="rav">Равномерное распределение</option>
                     <option value="weib">Распределение Вейбулла</option>
                     <option value="gamma">Гамма-распределение</option>
@@ -25,12 +25,12 @@
             </td>
             <td>
                 <div style="display: flex;">
-                    <input type="checkbox" id="checkbox" onclick="display_distrib()">
+                    <input type="checkbox" id="checkbox" onclick="displayDistrib()">
                     <span>Моделировать</span>
                 </div>
             </td>
         </tr>
-        <tr id="distrib_params" hidden>
+        <tr id="distribParams" hidden>
             <td></td>
             <td></td>
         </tr>
@@ -40,31 +40,32 @@
         </tr>
     </table>
     <script>
-        function display_distrib() {
-            if (document.getElementById('checkbox').checked) {
+        // Отображает панель выбора вида распределения и его параметров
+        function displayDistrib() {
+            if (document.getElementById("checkbox").checked) {
                 // Изменение размеров окна и элементов таблицы
-                document.querySelector('table').style.width = '440px';
-                document.getElementById('second_column').style.width = '200px';
+                document.querySelector("table").style.width = "440px";
+                document.getElementById("secondColumn").style.width = "200px";
 
                 // Отображение элемента выбора распределения
-                document.getElementById('consumption').hidden = true;
-                document.querySelector('select').hidden = false;
-                document.querySelector('select').value = "rav";
-                document.getElementById('distrib_params').hidden = false;
-                choose_distrib('rav');
+                document.getElementById("consumption").hidden = true;
+                document.querySelector("select").hidden = false;
+                document.querySelector("select").value = "rav";
+                document.getElementById("distribParams").hidden = false;
+                chooseDistrib("rav");
             }
             else {
                 // Обратное изменение размеров окна
-                document.getElementById('second_column').style.width = '140px';
-                document.querySelector('table').style.width = '380px';
+                document.getElementById("secondColumn").style.width = "140px";
+                document.querySelector("table").style.width = "380px";
                 
                 // Скрытие элемента выбора распределения
-                document.getElementById('consumption').hidden = false;
-                document.querySelector('select').hidden = true;
-                document.getElementById('distrib_params').hidden = true;
+                document.getElementById("consumption").hidden = false;
+                document.querySelector("select").hidden = true;
+                document.getElementById("distribParams").hidden = true;
 
                 // Удаление элементов управления параметрами распределения
-                let container = document.querySelector('#distrib_params td:nth-child(2)'); 
+                let container = document.querySelector("#distribParams td:nth-child(2)"); 
                 while (container.firstChild) {
                     container.removeChild(container.lastChild);
                 }
@@ -72,52 +73,55 @@
             }
         }
 
-        //  @dstrib - вид распределения
-        function choose_distrib() {
-            let container = document.querySelector('#distrib_params td:nth-child(2)');
+        // Отображает панели для настройки параметров выбранного распрделения
+        function chooseDistrib() {
+            // Очистка предыдущих панаелей параметров
+            let container = document.querySelector("#distribParams td:nth-child(2)");
             while (container.firstChild) {
                 container.removeChild(container.lastChild);
             }
 
-            let params_names;
-            let displayed_names;
-
-            let distrib = document.querySelector('select').value;
+            // Имена параметров
+            let paramsNames;
+            // Отображаемые подписи параметров
+            let displayedNames;
+            // Вид выбранного распределения
+            let distrib = document.querySelector("select").value;
 
             // Формирование списка параметров
             switch (distrib) {
                 case "rav":
-                    params_names = ['a', 'b'];
-                    displayed_names = ['a', 'b'];
+                    paramsNames = ["a", "b"];
+                    displayedNames = ["a", "b"];
                     break;
                 case "weib":
-                    params_names = ['k'];
-                    displayed_names = ['k'];
+                    paramsNames = ["k"];
+                    displayedNames = ["k"];
                     break;
                 case "gamma":
-                    params_names = ['k', 'theta'];
-                    displayed_names = ['k', '\u03B8'];
+                    paramsNames = ["k", "theta"];
+                    displayedNames = ["k", "\u03B8"];
                     break;
                 case "beta":
-                    params_names = ['a', 'b'];
-                    displayed_names = ['a', 'b'];
+                    paramsNames = ["a", "b"];
+                    displayedNames = ["a", "b"];
                     break;
             }
 
-            if (distrib == 'beta') {
+            if (distrib == "beta") {
                 container.innerHTML =
                     "<span id='alpha'>\u03b1 = <input type='text' value='2'></span>" + 
                     "<span id='beta'>\u03b2 = <input type='text' value='2'></span>";
             }
             
             // Отображение элементов управления значениями параметров
-            for (let i = 0; i < params_names.length; i++) {
-                let span = document.createElement('span');
-                span.innerText = `${displayed_names[i]} = `;
-                span.setAttribute('id', params_names[i]);
+            for (let i = 0; i < paramsNames.length; i++) {
+                let span = document.createElement("span");
+                span.innerText = `${displayedNames[i]} = `;
+                span.setAttribute("id", paramsNames[i]);
 
-                let input = document.createElement('input');
-                input.setAttribute('type', 'text');
+                let input = document.createElement("input");
+                input.setAttribute("type", "text");
                 span.append(input);
                 container.append(span);
             }

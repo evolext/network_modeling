@@ -6,16 +6,17 @@
 // --------------------------------------------- Для пайпа, находящихся в режиме редактирования -----------------------------------------------
 
 // Пункт "Путь.Продолжить": возобновление построения пути
-$('#map').on('click', '.continuePipe', function() {
+$("#map").on("click", ".continuePipe", function() {
     app.map.closePopup();  
     app.polylineEditor.continueBackward();
 });
 
 // Пункт "Путь.Завершить редактирвоание": завершение построения пути
-$('#map').on('click', '.endPipe', function() {
+$("#map").on("click", ".endPipe", function() {
     app.map.closePopup();
     endPipeEdit();
 });
+
 
 // Функция завершения редактирования пайпа
 function endPipeEdit() {
@@ -31,7 +32,7 @@ function endPipeEdit() {
 }
 
 // Пункт "Путь.Удалить вершину": удаление последней вершины пути (непоследние удаляются просто левым кликом по ним)
-$('#map').on('click', '.removeVertex ', function() {
+$("#map").on("click", ".removeVertex", function() {
     app.map.closePopup();
     // Объект редактируемого пайпа
     let pipe = app.pipes.get(app.editableId);
@@ -44,23 +45,24 @@ $('#map').on('click', '.removeVertex ', function() {
     app.polylineEditor = pipe.enableEdit();
 });
 
+
 // Пункт "Путь.Удалить весь путь": удаление редактируемого пути
-$('#map').on('click', '.removePipe', function() {
+$("#map").on("click", ".removePipe", function() {
     app.map.closePopup();
-    let pipe_id = app.editableId;
+    let pipeId = app.editableId;
 
     // Объект редактируемого пайпа
-    let pipe = app.pipes.get(pipe_id);
+    let pipe = app.pipes.get(pipeId);
     pipe.toggleEdit();
     pipe.remove();
 
     // Удаление декоратора
-    app.pipesArrows.get(pipe_id).remove();
+    app.pipesArrows.get(pipeId).remove();
 
     // Удаление всей соответствующей информации
-    app.pipes.delete(pipe_id);
-    app.pipesArrows.delete(pipe_id);
-    app.objectsInfo.delete(pipe_id);
+    app.pipes.delete(pipeId);
+    app.pipesArrows.delete(pipeId);
+    app.objectsInfo.delete(pipeId);
 
     app.polylineEditor = null;
     app.editableId = null;
@@ -71,122 +73,74 @@ $('#map').on('click', '.removePipe', function() {
 // ---------------------------------------- Для пайпа, который не находится в режиме редактирования -----------------------------------------------
 
 // Возобновление редактирования пути
-$('#map').on('click', '.editPipe', function(e) {
+$("#map").on("click", ".editPipe", function(e) {
     // Объект возобновляемого пайпа
-    let pipe_id = Number(e.target.dataset.id)
-    let pipe = app.pipes.get(pipe_id);
+    let pipeId = Number(e.target.dataset.id)
+    let pipe = app.pipes.get(pipeId);
     pipe.closePopup();
 
     // Завершаем редактирование предыдущего (если какой-то до этого редактировался)
     if (app.polylineEditor) {
-        let old_pipe = app.pipes.get(app.editableId);
-        old_pipe.toggleEdit();
-        old_pipe.bindPopup(app.pipePopup);
+        let oldPipe = app.pipes.get(app.editableId);
+        oldPipe.toggleEdit();
+        oldPipe.bindPopup(app.pipePopup);
     }
 
     app.polylineEditor = pipe.enableEdit();
-    app.editableId = pipe_id;
+    app.editableId = pipeId;
     app.pipePopup = pipe.getPopup();
     pipe.unbindPopup();
 });
 
 
 // Добавление на карту геообъекта (кроме источника)
-$('#map').on('click', '.initTower, .initReservoir, .initHydrant, .initStandpipe, .initWell, .initBranch, .initConsumer', function() {
+$("#map").on("click", ".initTower, .initReservoir, .initHydrant, .initStandpipe, .initWell, .initBranch, .initConsumer", function() {
     app.map.closePopup();
 
     // Определение типа добавляемого объекта
-    let obj_type = this.className.split(' ').find(elem => elem.startsWith('init')).substr('init'.length).toLowerCase();
+    let objectType = this.className.split(' ').find(elem => elem.startsWith("init")).substr("init".length).toLowerCase();
 
     
-    if ((obj_type != 'branch' && obj_type != 'well') || (app.editablePopup.getLatLng() == app.pipes.get(app.editableId).getLatLngs()[0])) {
+    if ((objectType != "branch" && objectType != "well") || (app.editablePopup.getLatLng() == app.pipes.get(app.editableId).getLatLngs()[0])) {
         // Завршить редактирование пайпа
         endPipeEdit();
     }
     // Если добавляется ответвление (или колодец) по середине пайпа (=> раздлеяем его на два)
     else {
-        let pipe_id = app.editableId
+        let pipeId = app.editableId;
 
         // Получаем координаты вершин одной и второй части пайпа
-        let pipe = app.pipes.get(pipe_id);
+        let pipe = app.pipes.get(pipeId);
         let points = pipe.getLatLngs();
         let index = points.indexOf(app.editablePopup.getLatLng());
-        let new_points1 = points.slice(index);
-        let new_points2 = points.slice(0, index + 1);
+        let newPointsPrev = points.slice(index);
+        let newPointsPost = points.slice(0, index + 1);
 
         // Удаляем "разделяемый пайп" и всю информацию с ним связанную
         pipe.disableEdit();
         pipe.remove();
-        pipes.delete(pipe_id);
-        pipesInfo.delete(pipe_id);
+        app.pipes.delete(pipeId);
+        app.objectsInfo.delete(pipeId);
 
         app.polylineEditor = null;
         app.editableId = null;
         app.pipePopup = null;
 
         // Создаем два новых пайпа
-        for (let coords of [new_points1, new_points2]) {
-            let new_pipe = L.polyline(coords, {});
-            new_pipe.bindPopup(
+        for (let coords of [newPointsPrev, newPointsPost]) {
+            let newPipe = L.polyline(coords, {});
+            newPipe.bindPopup(
                 L.popup({
                     closeButton: true
-                }).setContent(createCtxMenu('pipe'))
+                }).setContent(createCtxMenu("pipe"))
             );
 
-            new_pipe.addTo(app.map);
-            app.pipes.set(app.id, new_pipe);
-            app.pipesInfo.set(app.id++, {
-                activity: 1,
-                consumption: 0
-            });
+            newPipe.addTo(app.map);
+            app.pipes.set(app.id, newPipe);
+            app.objectsInfo.set(app.id++, ParamInfo(false));
         }
     }
 
     // Добавление геообъекта
-    initObject(obj_type, app.editablePopup.getLatLng());
-});
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-// Включить\выключить геообъект
-$('#map').on('change', '.toggleObject', function() {
-    // Отключение пайпа
-    if (typeof this.dataset.id === 'undefined') {
-        let pipe = pipes.get(edId);
-        let info = pipesInfo.get(edId);
-
-        // Меняем цвет пайпа и информацию
-        let clr;
-        if (info.activity) {
-            info.activity = 0;
-            clr = '#f52e00';
-        }
-        else {
-            clr = '#3388ff';
-            info.activity = 1;
-        }
-
-        pipe.setStyle({
-            color: clr
-        });
-    }
-    // Отключение геообъектов
-    else {
-        let objId = Number(this.dataset.id);
-        let obj = geoObjects[geoObjects.findIndex((obj) => obj.id == objId)];
-        let info = objectsInfo.get(objId);
-
-        if (info.activity) {
-            info.activity = 0;
-            obj.value.setIcon(createIcon(obj.type, false));
-        }
-        else {
-            info.activity = 1;
-            obj.value.setIcon(createIcon(obj.type));
-        }
-    }
+    initObject(objectType, app.editablePopup.getLatLng());
 });

@@ -6,11 +6,12 @@
 // ------------------------------------------- Управление видом меню ---------------------------------------------
 
 
+// Отображает инструменты для работы в выбранном режиме
 // @water - флаг инициализации инструментов для отрисовки схемы водоснбажения (в случае true)
 //          и для отрисовки схемы теплоснабжения (в случае false)
 function chooseMode(water) {
     // Установка глобального режима
-    app.mode = water ? 'WATER' : 'HEAT';
+    app.mode = water ? "WATER" : "HEAT";
 
     // Cкрытие кнопок выбора режима
     document.getElementById("createWaterNetwork").hidden = true;
@@ -27,7 +28,7 @@ function chooseMode(water) {
 }
 
 
-// Выход из какого-либо режима
+// Завершает работу приложения в выбранном ранее режиме
 function exitMode() {
     // Отображение кнопок выбора режима
     document.getElementById("createWaterNetwork").hidden = false;
@@ -42,13 +43,13 @@ function exitMode() {
     document.getElementById("saveNetwork").hidden = true;
 
     // Скрытия панели добавления объектов
-    document.getElementById("addingNodes").style.display = 'none';
+    document.getElementById("addingNodes").style.display = "none";
 
     // Скрытие панели расчетов
-    document.getElementById("calcPanel").style.display = 'none';
+    document.getElementById("calcPanel").style.display = "none";
 
     // Блокировка кнопки сохранения схемы
-    document.getElementById('saveNetwork').disabled = true;
+    document.getElementById("saveNetwork").disabled = true;
 
     // Очищение глобальных объектов и чистка рабочей повехности
     app.id = 0;
@@ -63,7 +64,6 @@ function exitMode() {
     app.geoObjects.length = 0;
     app.pipes.clear();
     app.objectsInfo.clear();
-    app.pipesInfo.clear();
     app.pipesArrows.clear();
 
     app.polylineEditor = undefined;
@@ -75,7 +75,7 @@ function exitMode() {
 }
 
 
-// Функция создания новой схемы
+// Инициализирует глобальные объекты для новой схемы
 function createNetwork() {
     // Флаг режима
     water = app.mode == "WATER";
@@ -102,26 +102,25 @@ function createNetwork() {
     }
 
     // Отображение кнопок добавления объектов
-    let all_buttons = document.querySelectorAll("#addingNodes button");
-    for (let button of all_buttons) {
-        button.hidden = (!button.classList.contains('heat') && !water) ? true : false;
+    for (let button of document.querySelectorAll("#addingNodes button")) {
+        button.hidden = (!button.classList.contains("heat") && !water) ? true : false;
     }
 
     // Изменение некоторых иконок на кнопках (зависит от выбранного режима)
     let label = document.querySelector("#buttonAddWell label");
-    label.innerText = water ? 'Водопроводный колодец' : 'Тепловая камера';
+    label.innerText = water ? "Водопроводный колодец" : "Тепловая камера";
 
-    let source = document.querySelector('#buttonAddSource');
+    let source = document.querySelector("#buttonAddSource");
     source.style.backgroundImage = `url(./images/panel_icons/${app.mode.toLowerCase()}/source.png)`;
     source.style.backgroundPositionY = water ? "3px" : "-1px";
 
-    let chamber = document.querySelector('#buttonAddWell');
+    let chamber = document.querySelector("#buttonAddWell");
     chamber.style.backgroundImage = `url(./images/panel_icons/${app.mode.toLowerCase()}/well.png)`;
     chamber.style.backgroundSize = water ? "25px" : "30px";
     chamber.style.backgroundPositionX = water ? "4px" : "0px";
     chamber.style.backgroundPositionY = water ? "1px" : "0px";
 
-    let consumer = document.querySelector('#buttonAddConsumer');
+    let consumer = document.querySelector("#buttonAddConsumer");
     consumer.style.backgroundImage = `url(./images/panel_icons/${app.mode.toLowerCase()}/consumer.png)`;
     consumer.style.backgroundSize = water ? "23px" : "20px";
     consumer.style.backgroundPositionX = water ? "4px" : "5px";
@@ -133,7 +132,7 @@ function createNetwork() {
 
 
 // Выполнение гидравлического расчета
-function hydraulic_calc() {
+function hydraulicСalc() {
         
     // Формирование объекта с исходными данными для отправки
     data = {
@@ -148,8 +147,8 @@ function hydraulic_calc() {
 
         data["objects"].push({
             "id": obj.id,
-            'type': obj.type,
-            "point": [point['lat'].toString(), point['lng'].toString()]
+            "type": obj.type,
+            "point": [point["lat"].toString(), point["lng"].toString()]
         });
     }
 
@@ -159,8 +158,8 @@ function hydraulic_calc() {
 
         data["pipes"].push({
             "id": key,
-            "point_beg": [points[points.length - 1]['lat'].toString(), points[points.length - 1]['lng'].toString()],
-            "point_end": [points[0]['lat'].toString(), points[0]['lng'].toString()]
+            "point_beg": [points[points.length - 1]["lat"].toString(), points[points.length - 1]["lng"].toString()],
+            "point_end": [points[0]["lat"].toString(), points[0]["lng"].toString()]
         });
     }
 
@@ -171,8 +170,8 @@ function hydraulic_calc() {
     }
 
     // Отправка данных на сервер
-    fetch('/hydraulic_calc', {
-        method: 'POST',
+    fetch("/hydraulic_calc", {
+        method: "POST",
         headers: {
             "Content-Type": "application/json",
         },
@@ -180,53 +179,52 @@ function hydraulic_calc() {
     })
     .then(response => response.json())
     .then(function(body) {
-        let new_params = JSON.parse(body.data)['params'];
+        let newParams = JSON.parse(body.data)["params"];
         
         // Обновление гидравлических характеристик объектов
-        for (let i = 0; i < new_params.length; i++) {
-            let obj_info = app.objectsInfo.get(new_params[i].id);
+        for (let i = 0; i < newParams.length; i++) {
+            let objectInfo = app.objectsInfo.get(newParams[i].id);
 
-            for (let key of Object.keys(obj_info)) {
-                obj_info[key] = new_params[i][key];               
+            for (let key of Object.keys(objectInfo)) {
+                objectInfo[key] = newParams[i][key];               
             }
         }
-
-        alert('Гидравлические расчеты проведены успешно');
+        // Уведомление пользователя
+        alert("Гидравлические расчеты проведены успешно");
     })
     .catch(err => console.error(err));
 }
 
 
 // Показ окна для построения пьезометрического графика
-function show_plot_popup() {
+function showPlotPopup() {
     // Отображение окна
-    document.getElementById('plotPopup').style.display = 'flex';
+    document.getElementById("plotPopup").style.display = "flex";
 
-    let beg_select = document.getElementById("node_beg");
-    let end_select = document.getElementById("node_end");
+    let begSelect = document.getElementById("begNode");
+    let endSelect = document.getElementById("endNode");
 
     // Заполнение выпадающих списков для выбора узлов
     for (let obj of app.geoObjects) {
-        let option = document.createElement('option');
-        option.setAttribute('value', obj.id);
+        let option = document.createElement("option");
+        option.setAttribute("value", obj.id);
         option.innerText = app.objectsInfo.get(obj.id).name;
 
-        beg_select.append(option);
-        end_select.append(option.cloneNode(true));
+        begSelect.append(option);
+        endSelect.append(option.cloneNode(true));
     }
-
 }
 
 
 // Поиск всех возможных путей от начально до конечной вершин
-function find_all_routes() {
+function findAllRoutes() {
     data = {
         "objects": [],
         "pipes": [],
         "route": {
             // Идентификаторы узлов начала и конца пути
-            "start": document.getElementById("node_beg").value,
-            "end": document.getElementById("node_end").value
+            "start": document.getElementById("begNode").value,
+            "end": document.getElementById("endNode").value
         }
     }
 
@@ -236,7 +234,7 @@ function find_all_routes() {
 
         data["objects"].push({
             "id": obj.id,
-            "point": [point['lat'].toString(), point['lng'].toString()]
+            "point": [point["lat"].toString(), point["lng"].toString()]
         });
     }
 
@@ -246,14 +244,14 @@ function find_all_routes() {
 
         data["pipes"].push({
             "id": key,
-            "point_beg": [points[points.length - 1]['lat'].toString(), points[points.length - 1]['lng'].toString()],
-            "point_end": [points[0]['lat'].toString(), points[0]['lng'].toString()]
+            "point_beg": [points[points.length - 1]["lat"].toString(), points[points.length - 1]["lng"].toString()],
+            "point_end": [points[0]["lat"].toString(), points[0]["lng"].toString()]
         });
     }
 
     // Отправка данных на сервер
-    fetch('/find_all_routes', {
-        method: 'POST',
+    fetch("/find_all_routes", {
+        method: "POST",
         headers: {
             "Content-Type": "application/json",
         },
@@ -265,23 +263,25 @@ function find_all_routes() {
 }
 
 
-function piezometric_choose_node() {
-    let beg_select = document.getElementById("node_beg");
-    let end_select = document.getElementById("node_end");
+// Отображает корректно панели выбора узла начала и конца 
+// для построения пьезометрического графика
+function piezometricSetNode() {
+    let beg_select = document.getElementById("begNode");
+    let end_select = document.getElementById("endNode");
 
     // Восстановить все option
-    for (let option of document.querySelectorAll("#node_beg option")) {
+    for (let option of document.querySelectorAll("#begNode option")) {
         option.hidden = false;
     }
-    for (let option of document.querySelectorAll("#node_end option")) {
+    for (let option of document.querySelectorAll("#endNode option")) {
         option.hidden = false;
     }
 
     if (beg_select.value != "none") {
-        document.querySelector(`#node_end option[value="${beg_select.value}"]`).hidden = true;
+        document.querySelector(`#endNode option[value="${beg_select.value}"]`).hidden = true;
     }
     if (end_select.value != "none") {
-        document.querySelector(`#node_beg option[value="${end_select.value}"]`).hidden = true;
+        document.querySelector(`#begNode option[value="${end_select.value}"]`).hidden = true;
     }
 
     if (beg_select.value != "none" && end_select.value != "none") {
@@ -290,7 +290,8 @@ function piezometric_choose_node() {
     
 }
 
-function close_plot_popup() {
+// Закрывает панель упралвения построением пьезометрического графика
+function closePlotPopup() {
     document.getElementById("plotPopup").style.display = "none";
 }
 
@@ -300,36 +301,36 @@ function close_plot_popup() {
 
 // Показ всплывающего окна для получения названия сохраняемой схемы
 function saveNetwork() {
-    let popup = document.createElement('div');
-    popup.setAttribute('id', 'savePopup');
+    let popup = document.createElement("div");
+    popup.setAttribute("id", "savePopup");
 
-    let p = document.createElement('p');
-    p.innerText = 'Название схемы';
+    let p = document.createElement("p");
+    p.innerText = "Название схемы";
 
-    let input = document.createElement('input');
+    let input = document.createElement("input");
     
-    let button_save = document.createElement('button');
-    button_save.innerText = 'Сохранить';
-    button_save.onclick = confirm_save;
+    let buttonSave = document.createElement("button");
+    buttonSave.innerText = "Сохранить";
+    buttonSave.onclick = confirmSave;
 
-    let button_cancel = document.createElement('button');
-    button_cancel.innerText = 'Отменить';
-    button_cancel.onclick = cancel_save;
+    let buttonСancel = document.createElement("button");
+    buttonСancel.innerText = "Отменить";
+    buttonСancel.onclick = cancelSave;
 
-    let button_container = document.createElement('div');
-    button_container.append(button_save, button_cancel);
-    popup.append(p, input, button_container);
+    let buttonsСontainer = document.createElement("div");
+    buttonsСontainer.append(buttonSave, buttonСancel);
+    popup.append(p, input, buttonsСontainer);
 
     // Запрос у пользователя названия схемы
-    document.getElementById('blackout').before(popup);
-    document.getElementById('blackout').style.display = 'block';
+    document.getElementById("blackout").before(popup);
+    document.getElementById("blackout").style.display = "block";
 }
 
 
 // Сохранение схемы на сервере
-function confirm_save() {
-    let schema_name = document.querySelector('#savePopup input').value;
-    if (schema_name != "") {
+function confirmSave() {
+    let schemaName = document.querySelector("#savePopup input").value;
+    if (schemaName != "") {
         // Подготовка данных для отправки
         schema = {
             "global": {},
@@ -341,23 +342,23 @@ function confirm_save() {
         }
 
         // Текущие значения глобальных переменных 
-        schema['global'].name = schema_name;
-        schema['global'].mode = app.mode;
-        schema['global'].id = app.id;
-        schema['global'].center = app.map.getCenter();
+        schema["global"].name = schemaName;
+        schema["global"].mode = app.mode;
+        schema["global"].id = app.id;
+        schema["global"].center = app.map.getCenter();
 
         // Данные об объектах схемы (id, тип, координаты центра)
         for (let obj of app.geoObjects) {
-            schema['objects']['nodes'].push({
+            schema["objects"]["nodes"].push({
                 "id": obj.id,
-                'type': obj.type,
+                "type": obj.type,
                 "point": obj.value.getLatLng()
             });
         }
 
         // Данные об участках схемы (id, список коориднат узлов)
         for (let [key, value] of app.pipes.entries()) {
-            schema['objects']['pipes'].push({
+            schema["objects"]["pipes"].push({
                 "id": key,
                 "points": value.getLatLngs()
             });
@@ -366,12 +367,12 @@ function confirm_save() {
         // Данные об гидравлических характеристиках объектов сети
         for (let [key, value] of app.objectsInfo) {
             // (value и так содержит все свйоства, кроме id объекта, поэтому просто создаем копию value и дополняем id)
-            schema['objects']['params'].push(Object.assign({"id": key}, value));
+            schema["objects"]["params"].push(Object.assign({"id": key}, value));
         }
 
         // Отправка данных на сервер для последующего сохранения
-        fetch('/save_schema', {
-            method: 'POST',
+        fetch("/save_schema", {
+            method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
@@ -381,76 +382,77 @@ function confirm_save() {
         .then(function (data) {
             // Уведомление пользователя об успешном сохранении схемы
             if (data.status == 0) {
-                alert('Схема сохранена успешно');
-                cancel_save();
+                alert("Схема сохранена успешно");
+                cancelSave();
             }
         })
         .catch(err => console.error(err));
     }
 }
 
-// Закрытие высплывающего окна сохранения
-function cancel_save() {
-    document.getElementById('savePopup').remove();
-    document.getElementById('blackout').style.display = 'none';
+
+// Закрывает всплывающее окно сохранения
+function cancelSave() {
+    document.getElementById("savePopup").remove();
+    document.getElementById("blackout").style.display = "none";
 }
 
 
 // Получение списка сохраненных схем с сервера
-function get_network_list() {
-    fetch('/list_schema')
+function getNetworkList() {
+    fetch("/list_schema")
     .then(response => response.json())
     .then(function (data) {
 
-        let popup = document.createElement('div');
-        popup.setAttribute('id', 'schemaList');
+        let popup = document.createElement("div");
+        popup.setAttribute("id", "schemaList");
 
-        let title = document.createElement('p');
-        title.innerText = 'Список схем';
+        let title = document.createElement("p");
+        title.innerText = "Список схем";
 
-        let list = document.createElement('select');
-        list.setAttribute('multiple', '1');
+        let list = document.createElement("select");
+        list.setAttribute("multiple", "1");
         list.onchange = selection;
 
         for (let schema of data.list) {
-            let option = document.createElement('option');
-            option.setAttribute('value', schema);
+            let option = document.createElement("option");
+            option.setAttribute("value", schema);
             option.innerText = schema;
 
             list.append(option);
         }
 
-        let msg = document.createElement('span');
-        msg.innerText = 'Схема для загрузки: не выбрана';
+        let msg = document.createElement("span");
+        msg.innerText = "Схема для загрузки: не выбрана";
 
-        let button_load = document.createElement('button');
-        button_load.setAttribute('disabled', '1');
-        button_load.innerText = 'Загрузить';
-        button_load.onclick = load_network;
+        let button_load = document.createElement("button");
+        button_load.setAttribute("disabled", "1");
+        button_load.innerText = "Загрузить";
+        button_load.onclick = loadNetwork;
 
-        let button_cancel = document.createElement('button');
-        button_cancel.innerText = 'Отменить';
-        button_cancel.onclick = cancel_load;
+        let button_cancel = document.createElement("button");
+        button_cancel.innerText = "Отменить";
+        button_cancel.onclick = loadCancel;
 
-        let button_container = document.createElement('div');
+        let button_container = document.createElement("div");
         button_container.append(button_load, button_cancel);
         popup.append(title, list, msg, button_container);
 
-        document.getElementById('blackout').before(popup);
-        document.getElementById('blackout').style.display = 'block';
+        document.getElementById("blackout").before(popup);
+        document.getElementById("blackout").style.display = "block";
     })
     .catch(err => console.error(err));
 }
 
 
 // Загрузка запрошенной схемы с сервера и ее развертывание
-function load_network() {
-    let url = new URL(window.location.origin + '/load_schema');
+function loadNetwork() {
+    let url = new URL(window.location.origin + "/load_schema");
     
     // Получаем название выбранной схемы
-    let schema = document.querySelector('#schemaList select').value;
+    let schema = document.querySelector("#schemaList select").value;
 
-    url.searchParams.append('schema', schema);
+    url.searchParams.append("schema", schema);
     
     fetch(url)
     .then(response => response.json())
@@ -458,21 +460,21 @@ function load_network() {
         let data = JSON.parse(body.data);
 
         // Развертывание схемы (глобальная информация)
-        app.id = data['global'].id;
-        app.map.setView(data['global'].center, zoom=14);
+        app.id = data["global"].id;
+        app.map.setView(data["global"].center, zoom=14);
 
         // Развертывание схемы (геообъекты)
-        for (let obj of data['objects']['nodes']) {
+        for (let obj of data["objects"]["nodes"]) {
             initObject(type=obj.type, coordinates=obj.point, key=obj.id);
         }
 
         // Развертывание схемы (участки)
-        for (let obj of data['objects']['pipes']) {
+        for (let obj of data["objects"]["pipes"]) {
             let new_pipe = L.polyline(obj.points, {});
             new_pipe.bindPopup(
                 L.popup({
                     closeButton: true
-                }).setContent(createCtxMenu('pipe', obj.id))
+                }).setContent(createCtxMenu("pipe", obj.id))
             );
             new_pipe.addTo(app.map);
 
@@ -499,7 +501,7 @@ function load_network() {
         }
 
         // Развертывание схемы (информация об элементах сети)
-        for (let info of data['objects']['params']) {
+        for (let info of data["objects"]["params"]) {
             let obj_id = info.id;
             delete info.id;
 
@@ -510,8 +512,8 @@ function load_network() {
             }
         }
 
-        alert('Схема загружена успешно');
-        cancel_load();
+        alert("Схема загружена успешно");
+        loadCancel();
         createNetwork();
     })
     .catch(err => console.error(err));
@@ -521,12 +523,12 @@ function load_network() {
 // Обработка события выбора схемы для загрузки
 function selection() {
     let new_val = document.querySelector("#schemaList select").value;
-    document.querySelector("#schemaList span").innerText = 'Схема для загрузки: ' + new_val;
-    document.querySelector('#schemaList div button:first-child').disabled = false;
+    document.querySelector("#schemaList span").innerText = "Схема для загрузки: " + new_val;
+    document.querySelector("#schemaList div button:first-child").disabled = false;
 }
 
 // Отмена загрузки схемы
-function cancel_load() {
-    document.getElementById('schemaList').remove();
-    document.getElementById('blackout').style.display = 'none';
+function loadCancel() {
+    document.getElementById("schemaList").remove();
+    document.getElementById("blackout").style.display = "none";
 }

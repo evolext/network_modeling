@@ -2,15 +2,16 @@
 //  Модуль для управления инициализацией геообъектов на карте
 //////////////////////////////////////////////////////////////////
 
-// Добавление объекта на карту в указанное место
-function addObjectOnPoint(obj_type, e) {
-    initObject(obj_type, e.latlng);
 
+// Добавляет объект на карту в указанное место
+function addObjectOnPoint(obj_type, e) {
+    // Создание объекта
+    initObject(obj_type, e.latlng);
     // Удаляем обработчик события
-    app.map.off('click');
+    app.map.off("click");
 }
 
-/* Создание геообъекта
+/* Создает геообъект
     @type - тип геообъекта
     @coordinates - координаты центра объекта
     @key - он же id объекта, в общем случае устанавливается автоматически,
@@ -20,7 +21,7 @@ function addObjectOnPoint(obj_type, e) {
 function initObject(type, coordinates, key=undefined, mode=1) {
 
     // key не инициализируется при развертывании схемы
-    if (typeof key === 'undefined') {
+    if (typeof key === "undefined") {
         key = app.id++;
     }
         
@@ -46,7 +47,8 @@ function initObject(type, coordinates, key=undefined, mode=1) {
     app.objectsInfo.set(key, new ParamInfo(true));
 }
 
-/* Функция получения кастомной икноки геообъекта
+
+/* Создает кастомную иконку геообъекта
     @type - тип геообъекта
     @mode - включен ли геообъект
 */
@@ -55,37 +57,37 @@ function createIcon(type, mode=true) {
     let size = [30, 30];
 
     switch (type) {
-        case 'source':
+        case "source":
             popupOffset = [1, -15];
             break;
-        case 'tower':
+        case "tower":
             popupOffset = [1, -15];
             break;
-        case 'reservoir':
+        case "reservoir":
             popupOffset = [-3, -15];
             break;
-        case 'standpipe':
+        case "standpipe":
             popupOffset = [1, -10];
             size = [25, 25];
             break;
-        case 'hydrant':
+        case "hydrant":
             popupOffset = [0, -10];
             size = [20, 20];
             break;
-        case 'well':
+        case "well":
             popupOffset = [0, -10];
             size = [20, 20];
             break;
-        case 'branch':
+        case "branch":
             popupOffset = [1, -8];
             size = [12, 12];
             break;
-        case 'consumer':
+        case "consumer":
             popupOffset = [1, -8];
             size = [15, 15];
             break;
     }
-    //let url = mode ? `./images/active/${type}.png` : `./icons/inactive/${type}.png`;
+
     let url = `./images/panel_icons/` + app.mode.toLowerCase() + `/${type}.png`;
     let icon = L.icon({
         iconUrl: url,
@@ -96,7 +98,7 @@ function createIcon(type, mode=true) {
     return icon;
 }
 
-/* Функция получения шаблона контекстного меню объекта
+/* Создает html-элемент контекстного меню геообъекта
     @type - тип геообъекта
     @obj_id - идентификатор геообъекта
 */
@@ -105,7 +107,7 @@ function createCtxMenu(type, obj_id){
 
     switch(type) 
     {
-        case 'pipe':
+        case "pipe":
             ctxMenu += "<button class='editPipe popupButton' data-id='" + obj_id + "'>Редактировать</button>";
             break;
         default:
@@ -115,31 +117,21 @@ function createCtxMenu(type, obj_id){
 
     ctxMenu += "<button class='getInfo popupButton' data-id='" + obj_id + "'>Информация</button>";
     ctxMenu += "<button class='removeObject popupButton' data-id='" + obj_id + "'>Удалить объект</button>";
-    
-    // // Переключатель режима геообъекта
-    // if (type != 'well' && type != 'branch' && type != 'pipe') {
-    //     ctxMenu +=
-    //     "<tr><td class='switch-container'>" +
-    //         "Состояние (выкл\\вкл): <label class='switch'><input type='checkbox' class='toggleObject' data-id='" + obj_id + "'><span class='slider'></span></label>" + 
-    //     "</td></tr>";
-    // }
-    // ctxMenu += "</table>";
-
     ctxMenu += "</div>";
     return ctxMenu;
 }
 
-// Инициализация пайпа
-//  @firstPoint - точка начала рисования пайпа
+
+// Создает объект участка
 function initPipe(firstPoint) {
-    let pipe_id = app.id;
+    let pipeId = app.id;
     
     // Завершаем редактирование предыдущего пайпа (если есть)
     if (app.polylineEditor) {
         // Завершаем редактировение старого пайпа и возвращаем ему popup для статики
-        let old_pipe = app.pipes.get(app.editableId);
-        old_pipe.disableEdit();
-        old_pipe.bindPopup(app.pipePopup);
+        let oldPipe = app.pipes.get(app.editableId);
+        oldPipe.disableEdit();
+        oldPipe.bindPopup(app.pipePopup);
 
         // Возвращаем настройки так, будто бы до этого пайп не редактировался
         app.polylineEditor = null;
@@ -150,10 +142,10 @@ function initPipe(firstPoint) {
     var pipe = L.polyline([firstPoint], {});
     app.pipePopup= L.popup({
         closeButton: true
-    }).setContent(createCtxMenu('pipe', pipe_id));
+    }).setContent(createCtxMenu("pipe", pipeId));
 
+    // Отображение на карте
     pipe.addTo(app.map);
-
 
     // Добавление стрелок
     var decorator = L.polylineDecorator(pipe, {
@@ -180,9 +172,9 @@ function initPipe(firstPoint) {
         }]
     }).addTo(app.map);
 
-    app.pipes.set(pipe_id, pipe);
-    app.objectsInfo.set(pipe_id, new ParamInfo(false));
-    app.pipesArrows.set(pipe_id, decorator);
+    app.pipes.set(pipeId, pipe);
+    app.objectsInfo.set(pipeId, new ParamInfo(false));
+    app.pipesArrows.set(pipeId, decorator);
 
     // Запуск редактора
     app.polylineEditor = pipe.enableEdit();
@@ -191,17 +183,17 @@ function initPipe(firstPoint) {
 }
 
 
-// Функция создания объекта-информации по объекту сети
+// Инициализирует объект-информацию по объекту сети
 //  @obj_flag - флаг типа объекта сети: true = узел, false = участок
-function ParamInfo(obj_flag = true) {
+function ParamInfo(objectFlag = true) {
     // Название объекта
-    this.name = obj_flag ? `Узел #${app.geoObjects.length}` : `Участок #${app.pipes.size}`;
+    this.name = objectFlag ? `Узел #${app.geoObjects.length}` : `Участок #${app.pipes.size}`;
 
     // Расход и напор
     this.q = undefined;
     this.h = undefined;
 
-    if (!obj_flag) {
+    if (!objectFlag) {
         this.length = undefined;
         this.material = "cost_iron";
         this.diameter = "150";
