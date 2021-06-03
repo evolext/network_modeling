@@ -197,20 +197,109 @@ function hydraulic_calc() {
 }
 
 
+// Показ окна для построения пьезометрического графика
+function show_plot_popup() {
+    // Отображение окна
+    document.getElementById('plotPopup').style.display = 'flex';
+
+    let beg_select = document.getElementById("node_beg");
+    let end_select = document.getElementById("node_end");
+
+    // Заполнение выпадающих списков для выбора узлов
+    for (let obj of app.geoObjects) {
+        let option = document.createElement('option');
+        option.setAttribute('value', obj.id);
+        option.innerText = app.objectsInfo.get(obj.id).name;
+
+        beg_select.append(option);
+        end_select.append(option.cloneNode(true));
+    }
+
+}
+
+
+// Поиск всех возможных путей от начально до конечной вершин
+function find_all_routes() {
+    data = {
+        "objects": [],
+        "pipes": [],
+        "route": {
+            // Идентификаторы узлов начала и конца пути
+            "start": document.getElementById("node_beg").value,
+            "end": document.getElementById("node_end").value
+        }
+    }
+
+    // id узлов и их коориднаты
+    for (let obj of app.geoObjects) {
+        let point = obj.value.getLatLng();
+
+        data["objects"].push({
+            "id": obj.id,
+            "point": [point['lat'].toString(), point['lng'].toString()]
+        });
+    }
+
+    // id участков и координаты их начала и конца
+    for (let [key, value] of app.pipes.entries()) {
+        let points = value.getLatLngs();
+
+        data["pipes"].push({
+            "id": key,
+            "point_beg": [points[points.length - 1]['lat'].toString(), points[points.length - 1]['lng'].toString()],
+            "point_end": [points[0]['lat'].toString(), points[0]['lng'].toString()]
+        });
+    }
+
+    // Отправка данных на сервер
+    fetch('/find_all_routes', {
+        method: 'POST',
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(body => console.log(body))
+    .catch(err => console.error(err));
+}
+
+
+function piezometric_choose_node() {
+    let beg_select = document.getElementById("node_beg");
+    let end_select = document.getElementById("node_end");
+
+    // Восстановить все option
+    for (let option of document.querySelectorAll("#node_beg option")) {
+        option.hidden = false;
+    }
+    for (let option of document.querySelectorAll("#node_end option")) {
+        option.hidden = false;
+    }
+
+    if (beg_select.value != "none") {
+        document.querySelector(`#node_end option[value="${beg_select.value}"]`).hidden = true;
+    }
+    if (end_select.value != "none") {
+        document.querySelector(`#node_beg option[value="${end_select.value}"]`).hidden = true;
+    }
+
+    if (beg_select.value != "none" && end_select.value != "none") {
+        document.querySelector("#plotPopup button").disabled = false;
+    }
+    
+}
+
+function close_plot_popup() {
+    document.getElementById("plotPopup").style.display = "none";
+}
+
+
 // ----------------------------------- Управление загрузкой/выгрузкой схем ------------------------------------------
 
 
 // Показ всплывающего окна для получения названия сохраняемой схемы
 function saveNetwork() {
-    // <div id="message">
-    //     <p>Название схемы</p>
-    //     <input type="text">
-    //     <div>
-    //         <button>Сохранить</button>
-    //         <button>Отмена</button>
-    //     </div>
-    // </div>
-
     let popup = document.createElement('div');
     popup.setAttribute('id', 'savePopup');
 

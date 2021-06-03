@@ -30,6 +30,29 @@
 </head>
 <body>
     <div id="wrapper">
+        <div id="plotPopup">
+            <p>Пьезометрический график</p>
+            <a id="cross" onclick="close_plot_popup()"><img src="./images/cross.png"></a>
+            <table>
+                <tr>
+                    <td>Начальный узел: </td>
+                    <td>
+                        <select id="node_beg" onchange="piezometric_choose_node()">
+                            <option disabled selected value="none"> Не выбран </option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Конечный узел: </td>
+                    <td>
+                        <select id="node_end" onchange="piezometric_choose_node()">
+                            <option disabled selected value="none"> Не выбран </option>
+                        </select>
+                    </td>
+                </tr>
+            </table>
+            <button disabled onclick="find_all_routes()">Найти маршруты</button>
+        </div>
         <div id="blackout"></div>
         <div id="map"></div>
         <div id="toolsPanel">
@@ -47,7 +70,7 @@
             <div id="calcPanel" hidden>
                 <h1>Выполнение расчетов</h1>
                 <button onclick="hydraulic_calc()"><label>Гидравлический</label></button>
-                <button id="" disabled><label>Пьезометрический график</label></button>
+                <button onclick="show_plot_popup()"><label>Пьезометрический график</label></button>
             </div>
             <div id="buttonsOfControlSchema">
                 <h1>Режим работы</h1>
@@ -292,6 +315,8 @@
         new_window.addEventListener('load', function() {
 
             // Общие данные и для узлов, и для участков
+            new_window.document.getElementById("name").value = info.name;
+
             if (typeof info.h !== 'undefined') {
                 new_window.document.getElementById("pressure").value = info.h;
             }
@@ -353,7 +378,7 @@
             }
 
             // Фокусировка на поле ввода
-            new_window.document.querySelector("input").focus();
+            // new_window.document.querySelector("input").focus();
         });
 
         // Обновляем данные после закрытия
@@ -392,6 +417,7 @@
                     info.velocity = new_window.document.getElementById("speed").value;
                 }
                 
+                info.name = new_window.document.getElementById("name").value;
                 info.h = new_window.document.getElementById("pressure").value;
             }
         });
@@ -420,6 +446,50 @@
                 checkbox.checked = (objectsInfo.get(obj.id).activity == 1);
         }
     });
+
+
+    
+    dragElement(document.getElementById("plotPopup"));
+
+    function dragElement(element) {
+        let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+
+        document.querySelector("#plotPopup p").onmousedown = dragMouseDown;
+
+        function dragMouseDown(e) {
+            e = e || window.event;
+            e.preventDefault();
+
+            // Позиция курсора мыши при запуске
+            pos3 = e.clientX;
+            pos4 = e.clientY;
+            document.onmouseup = closeDragElement;
+
+            // Вызываемая функция для каждого перемещения
+            document.onmousemove = elementDrag;
+        }
+
+        function elementDrag(e) {
+            e = e || window.event;
+            e.preventDefault();
+
+            // Высчитывание нового положения курсора
+            pos1 = pos3 - e.clientX;
+            pos2 = pos4 - e.clientY;
+            pos3 = e.clientX;
+            pos4 = e.clientY;
+
+            // Установка новой позиции элементу
+            element.style.top = (element.offsetTop - pos2) + "px";
+            element.style.left = (element.offsetLeft - pos1) + "px";
+        }
+
+        // Прекращение движения при отпускании мыши
+        function closeDragElement() {
+            document.onmouseup = null;
+            document.onmousemove = null;
+        }
+    }
 </script>
 <script src="/pipe-popup-events.js"></script>
 </html>

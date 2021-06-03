@@ -243,7 +243,7 @@ input:checked + .slider:before {
     right: 0;
 }
 
-#savePopup, #schemaList {
+#savePopup, #schemaList, #plotPopup {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -302,4 +302,54 @@ input:checked + .slider:before {
 
 #schemaList select:focus {
     outline: none;
+}
+
+#plotPopup {
+    display: none;
+    padding-top: 0;
+    width: 25%;
+}
+
+#plotPopup p {
+    cursor: grab;
+    text-align: center;
+    border-radius: 20px 20px 0px 0px;
+    padding: 10px;
+    width: 100%;
+}
+
+#plotPopup table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0px 10px;
+}
+
+#plotPopup td:first-child {
+    width: 130px;
+}
+
+#plotPopup select {
+    width: 100%;
+    text-align-last: center;
+    border: 1px solid black;
+}
+
+#plotPopup  select:focus{
+    outline: none;
+}
+
+#plotPopup button {
+    font-weight: 600;
+}
+
+#cross {
+    left: 335px;
+    top: 2px;
+    position: absolute;
+    cursor: pointer;
+}
+
+#cross img {
+    width: 20px;
+    height: 20px;
 }

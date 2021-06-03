@@ -45,6 +45,17 @@ app.post('/hydraulic_calc', function(request, response) {
 });
 
 
+// Запрос на поиск всех путей между двумя вершинами для дальнейшего построения пьзометрического графика
+app.post('/find_all_routes', function (request, response) {
+
+    // Запись полученных данных в файл
+    fs.mkdirSync(__dirname + '/calc');
+    fs.writeFileSync('./calc/input.json', JSON.stringify(request.body));
+
+    response.send({});
+});
+
+
 // Запрос на сохранение схемы
 app.post('/save_schema', function(request, response) {
     // Запись полученной информации в файл

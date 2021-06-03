@@ -194,6 +194,9 @@ function initPipe(firstPoint) {
 // Функция создания объекта-информации по объекту сети
 //  @obj_flag - флаг типа объекта сети: true = узел, false = участок
 function ParamInfo(obj_flag = true) {
+    // Название объекта
+    this.name = obj_flag ? `Узел #${app.geoObjects.length}` : `Участок #${app.pipes.size}`;
+
     // Расход и напор
     this.q = undefined;
     this.h = undefined;

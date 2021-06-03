@@ -11,6 +11,9 @@ table {
     margin: 0;
     padding: 0;
 }
+table tr:first-child td {
+    margin-bottom: 5px;
+}
 td {
     border: 1px solid black;
     padding: 0;
@@ -28,7 +31,7 @@ tr td:nth-child(3) {
 input[type="text"] {
     border: 1px solid black;
 }
-#consumption, #pressure {
+#consumption, #pressure, #name {
     border: none;
     width: 96%;
     margin: 0;
