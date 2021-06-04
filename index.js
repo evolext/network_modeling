@@ -21,11 +21,15 @@ app.get("/", function (request, response) {
 app.post("/hydraulic_calc", function(request, response) {
 
     // Запись полученных данных в файл
-    fs.mkdirSync(__dirname + "/calc");
+    const filepath = __dirname + "/calc"; 
+    if (!fs.existsSync(filepath)) {
+        fs.mkdirSync(filepath);
+    }
+
     fs.writeFileSync("./calc/input.json", JSON.stringify(request.body));
 
     // Запуск программы расчета
-    const calcProgram = spawn("./calc_prog/main.exe");
+    const calcProgram = spawn("./calculationPrograms/hydraulic/main.exe");
 
     // Вывод ошибок на случай некорректного выполнения программы расчетов
     calcProgram.stderr.on("data", (data) => {
@@ -46,10 +50,29 @@ app.post("/hydraulic_calc", function(request, response) {
 // Обрабатывает запрос на поиск всех путей между двумя вершинами 
 // для дальнейшего построения пьзометрического графика
 app.post("/find_all_routes", function (request, response) {
+
     // Запись полученных данных в файл
-    fs.mkdirSync(__dirname + "/calc");
+    const filepath = __dirname + "/calc"; 
+    if (!fs.existsSync(filepath)) {
+        fs.mkdirSync(filepath);
+    }
+
     fs.writeFileSync("./calc/input.json", JSON.stringify(request.body));
-    response.send({});
+
+    // Запуск программы расчета
+    const calcProgram = spawn("./calculationPrograms/piezometric/main.exe");
+
+    // Вывод ошибок на случай некорректного выполнения программы расчетов
+    calcProgram.stderr.on("data", (data) => {
+        console.error(`stderr: ${data}`);
+    });
+
+    // По окончании расчетов отправляет результаты клиенту и удаляет временные файлы
+    calcProgram.on("exit", function () {
+        let result = JSON.parse(fs.readFileSync("./calc/output.json"));        
+        response.send(JSON.stringify(result));
+        fs.rmdirSync(__dirname + "/calc", { recursive: true });
+    });
 });
 
 

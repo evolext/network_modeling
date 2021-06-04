@@ -328,7 +328,7 @@ input:checked + .slider:before {
     width: 130px;
 }
 
-#plotPopup select {
+#endNode, #begNode {
     width: 100%;
     text-align-last: center;
     border: 1px solid black;
@@ -352,4 +352,17 @@ input:checked + .slider:before {
 #cross img {
     width: 20px;
     height: 20px;
+}
+
+#routes {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    margin-top: 15px;
+}
+
+#routesList {
+    text-align-last: center;
+    width: 100%;
+    margin-left: 10px;
 }

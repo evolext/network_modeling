@@ -1,10 +1,12 @@
 /static/images
 /static/Leaflet.Editable.js
-/static/leaflet-providers.js
+/static/leafletProviders.js
 /static/layer
 package-lock.json
 /node_modules
-/calc_prog/main.exe
+/calculationPrograms/hydraulic/main.exe
+/calculationPrograms/piezometric/main.exe
 заметки.txt
 /networks
 /info
+/calc

@@ -204,6 +204,16 @@ function showPlotPopup() {
     let begSelect = document.getElementById("begNode");
     let endSelect = document.getElementById("endNode");
 
+    begSelect.value = "none";
+    endSelect.value = "none";
+
+    while (begSelect.lastChild.value !== "none") {
+        begSelect.removeChild(begSelect.lastChild);
+    }
+    while (endSelect.lastChild.value !== "none") {
+        endSelect.removeChild(endSelect.lastChild);
+    }
+
     // Заполнение выпадающих списков для выбора узлов
     for (let obj of app.geoObjects) {
         let option = document.createElement("option");
@@ -258,16 +268,93 @@ function findAllRoutes() {
         body: JSON.stringify(data)
     })
     .then(response => response.json())
-    .then(body => console.log(body))
+    .then(function(body) {
+        // Количество найденных маршрутов
+        let routesCount = body.paths.length;
+
+        // Отображение панели с выбором маршрута
+        let routesContainer = document.createElement("div");
+        routesContainer.setAttribute("id", "routes");
+
+        let span = document.createElement("span");
+
+        if (routesCount == 0) {
+            span.innerText = "Маршруты не найдены";
+            routesContainer.append(span);
+        }
+        else {
+            span.innerText = "Маршрут: ";
+            let routesList = document.createElement("select");
+            routesList.setAttribute("id", "routesList");
+            routesList.dataset.prevValue = "none";
+
+            let firstOption = document.createElement("option");
+            firstOption.innerText = "Не выбран";
+            firstOption.setAttribute("disabled", "1");
+            firstOption.setAttribute("selected", "1");
+            firstOption.setAttribute("value", "none");
+    
+            routesList.append(firstOption);
+
+            for (let i = 0; i < routesCount;  i++) {
+                let option = document.createElement("option");
+                option.innerText = `Маршрут #${i+1}`;
+                // "Зашиваем" путь в атрибут value
+                option.setAttribute("value", body.paths[i].join('_'))
+                routesList.append(option);
+            }
+
+            routesList.onchange = paintRoute;
+
+            routesContainer.append(span, routesList);
+        }
+
+        document.getElementById("plotPopup").append(routesContainer);
+
+        // Блокирование кнопки, чтобы не повторять поиск
+        document.querySelector("#plotPopup button").disabled = true;
+    })
     .catch(err => console.error(err));
+}
+
+
+// Выделяет цветом выбранный для отображения на пьезометрическом график маршрут
+function paintRoute() {
+    let routesList = document.getElementById("routesList");
+    
+    console.log(routesList.dataset.prevValue);
+    if (routesList.dataset.prevValue != "none") {
+        // Перекрашиваем обратно предыдущий путь
+        for (let pipeId of routesList.dataset.prevValue.split('_')) {
+            let prevPipe = app.pipes.get(Number(pipeId));
+            prevPipe.setStyle({
+                color: '#3388ff'
+            });
+        }
+    }
+
+    for (let pipeId of routesList.value.split('_')) {
+        let pipe = app.pipes.get(Number(pipeId));
+    
+        pipe.setStyle({
+            color: 'red'
+        });
+    } 
+
+    routesList.dataset.prevValue = routesList.value;
 }
 
 
 // Отображает корректно панели выбора узла начала и конца 
 // для построения пьезометрического графика
 function piezometricSetNode() {
-    let beg_select = document.getElementById("begNode");
-    let end_select = document.getElementById("endNode");
+    let routesContainer = document.getElementById("routes");
+    if (routesContainer) {
+        routesContainer.remove();
+    }
+
+    let begSelect = document.getElementById("begNode");
+    let endSelect = document.getElementById("endNode");
 
     // Восстановить все option
     for (let option of document.querySelectorAll("#begNode option")) {
@@ -277,14 +364,14 @@ function piezometricSetNode() {
         option.hidden = false;
     }
 
-    if (beg_select.value != "none") {
-        document.querySelector(`#endNode option[value="${beg_select.value}"]`).hidden = true;
+    if (begSelect.value != "none") {
+        document.querySelector(`#endNode option[value="${begSelect.value}"]`).hidden = true;
     }
-    if (end_select.value != "none") {
-        document.querySelector(`#begNode option[value="${end_select.value}"]`).hidden = true;
+    if (endSelect.value != "none") {
+        document.querySelector(`#begNode option[value="${endSelect.value}"]`).hidden = true;
     }
 
-    if (beg_select.value != "none" && end_select.value != "none") {
+    if (begSelect.value != "none" && endSelect.value != "none") {
         document.querySelector("#plotPopup button").disabled = false;
     }
     

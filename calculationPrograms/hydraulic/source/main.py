@@ -199,9 +199,8 @@ for param in data['params']:
         param['h'] = str(np.round(P[param['id']] / (P_WATER * G), PRECISION))
 
 output = open('./calc/output.json', 'w')
-json.dump(data, output)
+json.dump(obj=data, fp=output, ensure_ascii=False)
 output.close()
-
 
 
 # # Решение через полное моделирование

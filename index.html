@@ -10,14 +10,14 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     
     <!-- Для кастомных подложек -->
-    <script src="./leaflet-providers.js"></script>
+    <script src="./leafletProviders.js"></script>
 
     <!-- Модуль для редактирования примитивов-->
     <script src="./Leaflet.Editable.js"></script>
 
     <!-- Свои модули -->
-    <script src="./init-objects.js"></script>
-    <script src="./panel-buttons.js"></script>
+    <script src="./initObjects.js"></script>
+    <script src="./panelButtons.js"></script>
 
     <!-- модуль BigImage -->
     <link rel="stylesheet" href="BigImage/Leaflet.BigImage.css">
@@ -36,7 +36,7 @@
                     <td>Начальный узел: </td>
                     <td>
                         <select id="begNode" onchange="piezometricSetNode()">
-                            <option disabled selected value="none"> Не выбран </option>
+                            <option disabled selected value="none">Не выбран</option>
                         </select>
                     </td>
                 </tr>
@@ -44,7 +44,7 @@
                     <td>Конечный узел: </td>
                     <td>
                         <select id="endNode" onchange="piezometricSetNode()">
-                            <option disabled selected value="none"> Не выбран </option>
+                            <option disabled selected value="none">Не выбран</option>
                         </select>
                     </td>
                 </tr>
@@ -83,5 +83,5 @@
     </div>
 </body>
 <script src="./main.js"></script>
-<script src="./pipe-popup-events.js"></script>
+<script src="./pipePopupEvents.js"></script>
 </html>
