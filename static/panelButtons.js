@@ -198,21 +198,74 @@ function hydraulicСalc() {
 
 // Показ окна для построения пьезометрического графика
 function showPlotPopup() {
-    // Отображение окна
-    document.getElementById("plotPopup").style.display = "flex";
+    // Создание окна
+    let plotPopup = document.createElement("div");
+    plotPopup.setAttribute("id", "plotPopup");
 
-    let begSelect = document.getElementById("begNode");
-    let endSelect = document.getElementById("endNode");
+    let title = document.createElement("p");
+    title.innerText = "Пьезометрический график";
 
-    begSelect.value = "none";
-    endSelect.value = "none";
+    let crossIcon = document.createElement("img");
+    crossIcon.setAttribute("src", "./images/cross.png");
 
-    while (begSelect.lastChild.value !== "none") {
-        begSelect.removeChild(begSelect.lastChild);
-    }
-    while (endSelect.lastChild.value !== "none") {
-        endSelect.removeChild(endSelect.lastChild);
-    }
+    let crossButton = document.createElement("a");
+    crossButton.setAttribute("id", "cross");
+    crossButton.append(crossIcon);
+    crossButton.onclick = closePlotPopup;
+
+    let table = document.createElement("table");
+
+    let firstOptionBeg = document.createElement("option");
+    firstOptionBeg.innerText = "Не выбран";
+    firstOptionBeg.setAttribute("disabled", "");
+    firstOptionBeg.setAttribute("selected", "");
+    firstOptionBeg.setAttribute("value", "none");
+
+    let firstOptionEnd = firstOptionBeg.cloneNode(true);
+
+    let selectBeg = document.createElement("select");
+    let selectEnd = document.createElement("select");
+
+    selectBeg.setAttribute("id", "begNode");
+    selectBeg.append(firstOptionBeg);
+
+    selectEnd.setAttribute("id", "endNode");
+    selectEnd.append(firstOptionEnd);
+
+    let tdTitleBeg = document.createElement("td");
+    tdTitleBeg.innerText = "Начальный узел: ";
+
+    let tdTitleEnd = document.createElement("td");
+    tdTitleEnd.innerText = "Конечный узел: ";
+
+    let tdSelectBeg = document.createElement("td");
+    tdSelectBeg.append(selectBeg);
+
+    let tdSelectEnd = document.createElement("td");
+    tdSelectEnd.append(selectEnd);
+
+    let firstRow = document.createElement("tr");
+    firstRow.append(tdTitleBeg, tdSelectBeg);
+
+    let secondRow = document.createElement("tr");
+    secondRow.append(tdTitleEnd, tdSelectEnd);
+
+    table.append(firstRow, secondRow);
+
+    let buttonFindRoutes = document.createElement("button");
+    buttonFindRoutes.innerText = "Найти маршруты";
+    buttonFindRoutes.setAttribute("disabled", "");
+    buttonFindRoutes.onclick = findAllRoutes;
+
+    plotPopup.append(title, crossButton, table, buttonFindRoutes);
+    document.getElementById("blackout").before(plotPopup);
+
+    // Настройка окна
+    selectBeg.value = "none";
+    selectEnd.value = "none";
+
+    selectBeg.onchange = piezometricSetNode;
+    selectEnd.onchange = piezometricSetNode;
 
     // Заполнение выпадающих списков для выбора узлов
     for (let obj of app.geoObjects) {
@@ -220,9 +273,12 @@ function showPlotPopup() {
         option.setAttribute("value", obj.id);
         option.innerText = app.objectsInfo.get(obj.id).name;
 
-        begSelect.append(option);
-        endSelect.append(option.cloneNode(true));
+        selectBeg.append(option);
+        selectEnd.append(option.cloneNode(true));
     }
+
+    // Придание окну свойства подвижности
+    dragElement(plotPopup);
 }
 
 
@@ -281,6 +337,7 @@ function findAllRoutes() {
         if (routesCount == 0) {
             span.innerText = "Маршруты не найдены";
             routesContainer.append(span);
+            routesContainer.style.justifyContent = "center";
         }
         else {
             span.innerText = "Маршрут: ";
@@ -305,11 +362,20 @@ function findAllRoutes() {
             }
 
             routesList.onchange = paintRoute;
-
             routesContainer.append(span, routesList);
         }
 
         document.getElementById("plotPopup").append(routesContainer);
+
+        // Кнопка для построения графика
+        if (routesCount != 0) {
+            let buttonPlot = document.createElement("button");
+            buttonPlot.innerText = "Построить график";
+            buttonPlot.setAttribute("id", "piezoPlot");
+            buttonPlot.setAttribute("disabled", "1");
+            buttonPlot.onclick = piezoPlot;
+            document.getElementById("plotPopup").append(buttonPlot);
+        }
 
         // Блокирование кнопки, чтобы не повторять поиск
         document.querySelector("#plotPopup button").disabled = true;
@@ -322,26 +388,108 @@ function findAllRoutes() {
 function paintRoute() {
     let routesList = document.getElementById("routesList");
     
-    console.log(routesList.dataset.prevValue);
     if (routesList.dataset.prevValue != "none") {
-        // Перекрашиваем обратно предыдущий путь
-        for (let pipeId of routesList.dataset.prevValue.split('_')) {
-            let prevPipe = app.pipes.get(Number(pipeId));
-            prevPipe.setStyle({
-                color: '#3388ff'
-            });
-        }
+        repaintRoute();
     }
 
-    for (let pipeId of routesList.value.split('_')) {
-        let pipe = app.pipes.get(Number(pipeId));
+    let route = routesList.value.split('_');
+
+    for (let i = 1; i < route.length; i += 2) {
+        let pipe = app.pipes.get(Number(route[i]));
     
         pipe.setStyle({
             color: 'red'
         });
-    } 
+    }
 
+    document.getElementById("piezoPlot").disabled = false;
     routesList.dataset.prevValue = routesList.value;
+}
+
+
+// Отменяет выделение цветом предыдущего выбранного пути
+function repaintRoute() {
+    let route = document.getElementById("routesList").dataset.prevValue.split('_');
+
+    for (let i = 1; i < route.length; i += 2) {
+        let prevPipe = app.pipes.get(Number(route[i]));
+        prevPipe.setStyle({
+            color: '#3388ff'
+        });
+    }
+}
+
+
+// Строит пьезометрический график
+function piezoPlot() {
+    // Создание отдельного окна для графика
+    let url = "./plot_piezometric.html";
+    let params = "left=500, top=100, height=500, width=950"
+    let plotWindow = window.open(url, "window", params);
+
+    plotWindow.addEventListener("load", function() {
+        // Данные для отрисовки
+        let data = {
+            // Подписи к оси Ox
+            labels: [],
+            datasets: [{
+                label: 'Напор, м',
+                // Значения по оси Oy
+                data: [],
+                fill: false,
+                borderColor: 'red',
+                pointRadius: 5
+            }]
+        };
+
+        let route = document.getElementById("routesList").value.split('_');
+
+        for (let i = 0 ; i < route.length; i += 2) {
+            let info = app.objectsInfo.get(Number(route[i]));
+            // Название узла
+            data.labels.push(info.name);
+            // Величина напора
+            data.datasets[0].data.push(parseFloat(info.h));
+        }
+
+        let config = {
+            type: "line",
+            data,
+            options: {
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        title: {
+                            display: true,
+                            text: "Напор, м",
+                            color: "black",
+                            font: {
+                                size: 18
+                            }
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            color: "black",
+                            font: {
+                                size: 14
+                            }
+                        }
+                    }
+                }
+            }
+        };
+
+        new Chart(
+            plotWindow.document.getElementById("canvas"),
+            config
+        );
+
+    });
 }
 
 
@@ -350,7 +498,11 @@ function paintRoute() {
 function piezometricSetNode() {
     let routesContainer = document.getElementById("routes");
     if (routesContainer) {
+        if (document.getElementById("routesList").dataset.prevValue != "none") {
+            repaintRoute();
+        }
         routesContainer.remove();
+        document.getElementById("piezoPlot").remove();
     }
 
     let begSelect = document.getElementById("begNode");
@@ -379,7 +531,13 @@ function piezometricSetNode() {
 
 // Закрывает панель упралвения построением пьезометрического графика
 function closePlotPopup() {
-    document.getElementById("plotPopup").style.display = "none";
+    let routesContainer = document.getElementById("routes");
+    let routesList = document.getElementById("routesList");
+    if (routesContainer && routesList.dataset.prevValue != "none") {
+        repaintRoute();
+    }
+
+    document.getElementById("plotPopup").remove();
 }
 
 
@@ -618,4 +776,46 @@ function selection() {
 function loadCancel() {
     document.getElementById("schemaList").remove();
     document.getElementById("blackout").style.display = "none";
+}
+
+
+// Придает окну свойство подвижности
+function dragElement(element) {
+    let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+
+    element.querySelector("p").onmousedown = dragMouseDown;
+
+    function dragMouseDown(e) {
+        e = e || window.event;
+        e.preventDefault();
+
+        // Позиция курсора мыши при запуске
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        document.onmouseup = closeDragElement;
+
+        // Вызываемая функция для каждого перемещения
+        document.onmousemove = elementDrag;
+    }
+
+    function elementDrag(e) {
+        e = e || window.event;
+        e.preventDefault();
+
+        // Высчитывание нового положения курсора
+        pos1 = pos3 - e.clientX;
+        pos2 = pos4 - e.clientY;
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+
+        // Установка новой позиции элементу
+        element.style.top = (element.offsetTop - pos2) + "px";
+        element.style.left = (element.offsetLeft - pos1) + "px";
+    }
+
+    // Прекращение движения при отпускании мыши
+    function closeDragElement() {
+        document.onmouseup = null;
+        document.onmousemove = null;
+    }
 }

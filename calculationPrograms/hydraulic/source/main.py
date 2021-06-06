@@ -109,7 +109,7 @@ def mean(data):
 
 
 # Чтение исходных данных
-input = open('./calc/input.json', 'r')
+input = open(file='./calc/input.json', mode='r', encoding='utf-8')
 data = json.load(input)
 input.close()
 
@@ -199,7 +199,7 @@ for param in data['params']:
         param['h'] = str(np.round(P[param['id']] / (P_WATER * G), PRECISION))
 
 output = open('./calc/output.json', 'w')
-json.dump(obj=data, fp=output, ensure_ascii=False)
+json.dump(obj=data, fp=output)
 output.close()
 
 

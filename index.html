@@ -9,6 +9,9 @@
     
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     
+    <!-- Для построения графиков -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <!-- Для кастомных подложек -->
     <script src="./leafletProviders.js"></script>
 
@@ -28,7 +31,7 @@
 </head>
 <body>
     <div id="wrapper">
-        <div id="plotPopup">
+        <!-- <div id="plotPopup">
             <p>Пьезометрический график</p>
             <a id="cross" onclick="closePlotPopup()"><img src="./images/cross.png"></a>
             <table>
@@ -50,7 +53,7 @@
                 </tr>
             </table>
             <button disabled onclick="findAllRoutes()">Найти маршруты</button>
-        </div>
+        </div> -->
         <div id="blackout"></div>
         <div id="map"></div>
         <div id="toolsPanel">

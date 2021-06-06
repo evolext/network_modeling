@@ -56,7 +56,6 @@ app.post("/find_all_routes", function (request, response) {
     if (!fs.existsSync(filepath)) {
         fs.mkdirSync(filepath);
     }
-
     fs.writeFileSync("./calc/input.json", JSON.stringify(request.body));
 
     // Запуск программы расчета

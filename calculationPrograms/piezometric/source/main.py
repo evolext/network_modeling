@@ -67,7 +67,7 @@ else:
     if found_paths:
 
         for path_by_vertices in found_paths:
-            path_by_edges = []
+            full_path = []
             for i in range(len(path_by_vertices) - 1):
                 key_beg = path_by_vertices[i]
                 key_end = path_by_vertices[i + 1]
@@ -77,9 +77,12 @@ else:
 
                 key_edge = next(pipe['id'] for pipe in data['pipes']
                                 if pipe['point_beg'] == point_beg and pipe['point_end'] == point_end)
-                path_by_edges.append(key_edge)
 
-            result['paths'].append(path_by_edges)
+                full_path.append(key_beg)
+                full_path.append(key_edge)
+
+            full_path.append(int(data['route']['end']))
+            result['paths'].append(full_path)
 
     output = open('./calc/output.json', 'w')
     json.dump(result, output)
