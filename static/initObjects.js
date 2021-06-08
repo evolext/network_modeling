@@ -147,34 +147,37 @@ function initPipe(firstPoint) {
     // Отображение на карте
     pipe.addTo(app.map);
 
-    // Добавление стрелок
-    var decorator = L.polylineDecorator(pipe, {
-        patterns: [{
-            // Величина смещения первой стрелки отностиельно первой вершины
-            offset: 10,   
-            // Величина смещения стрелки отностельно последней вершины  
-            endOffset: 10,
-            // Расстояние между стрелками
-            repeat: 40,
-            // Экземпляр класса стрелки
-            symbol: L.Symbol.arrowHead({
-                // Длина стрелки
-                pixelSize: 15,
-                // Угол стрелки
-                headAngle: 35,
-                pathOptions: {
-                    // Прозрачность
-                    fillOpacity: 1,
-                    // Выделение жирное
-                    weight: 0
-                }
-            })
-        }]
-    }).addTo(app.map);
+    // Добавление стрелок, обозначающих направление потока (для сетей ВС)
+    if (app.mode == "WATER") {
+        let decorator = L.polylineDecorator(pipe, {
+            patterns: [{
+                // Величина смещения первой стрелки отностиельно первой вершины
+                offset: 10,   
+                // Величина смещения стрелки отностельно последней вершины  
+                endOffset: 10,
+                // Расстояние между стрелками
+                repeat: 40,
+                // Экземпляр класса стрелки
+                symbol: L.Symbol.arrowHead({
+                    // Длина стрелки
+                    pixelSize: 15,
+                    // Угол стрелки
+                    headAngle: 35,
+                    pathOptions: {
+                        // Прозрачность
+                        fillOpacity: 1,
+                        // Выделение жирное
+                        weight: 0
+                    }
+                })
+            }]
+        }).addTo(app.map);
+
+        app.pipesArrows.set(pipeId, decorator);
+    }
 
     app.pipes.set(pipeId, pipe);
     app.objectsInfo.set(pipeId, new ParamInfo(false));
-    app.pipesArrows.set(pipeId, decorator);
 
     // Запуск редактора
     app.polylineEditor = pipe.enableEdit();

@@ -92,13 +92,20 @@ function createNetwork() {
     block.style.flexDirection = "column";
     block.style.alignItems = "center";
 
-    // Отображение панели расчетов (пока только для водопроводных сетей)
-    if (water) {
-        calc_panel = document.getElementById("calcPanel");
-        calc_panel.hidden = false;
-        calc_panel.style.display = "flex";
-        calc_panel.style.flexDirection = "column";
-        calc_panel.style.alignItems = "center";
+    // Отображение панели расчетов для водопроводных сетей
+    let calcPanel = document.getElementById("calcPanel");
+    calcPanel.hidden = false;
+    calcPanel.style.display = "flex";
+    calcPanel.style.flexDirection = "column";
+    calcPanel.style.alignItems = "center";
+
+    for (let button of calcPanel.querySelectorAll("button")) {
+        if (button.classList.contains("water") && water || button.classList.contains("heat") && !water) {
+            button.hidden = false;
+        }
+        else {
+            button.hidden = true;
+        }
     }
 
     // Отображение кнопок добавления объектов
@@ -209,7 +216,8 @@ function showPlotPopup() {
     crossIcon.setAttribute("src", "./images/cross.png");
 
     let crossButton = document.createElement("a");
-    crossButton.setAttribute("id", "cross");
+    crossButton.setAttribute("class", "cross");
+    crossButton.style.left = "93%";
     crossButton.append(crossIcon);
     crossButton.onclick = closePlotPopup;
 
@@ -541,6 +549,131 @@ function closePlotPopup() {
 }
 
 
+// ----------------------------------------- Расчет надежности сети ------------------------------------------------
+
+// Показать окно для расчета
+function showReabilityPopup() {
+    let popup = document.getElementById("reliabilityPopup");
+    popup.style.display = "flex";
+    document.getElementById("blackout").style.display = "block";
+
+    let selectPeriod = popup.querySelector("select");
+    for (let i = 0; i < 10; i++) {
+        let option = document.createElement("option");
+        option.setAttribute("value", (i + 1).toString());
+        option.innerText = (i + 1).toString();
+        selectPeriod.append(option);
+    }
+
+    document.getElementById("periodOfView").oninput = validatePeriods;
+    document.getElementById("periodOfHeat").oninput = validatePeriods;
+
+    let cross = popup.querySelector("a");
+    cross.style.left = "94%";
+    cross.onclick = closeReabilityPopup;
+
+    popup.querySelector("button").disabled = true;
+    popup.querySelector("button").onclick = reabilityCalc;
+}
+
+// Расчет надежности сети
+function reabilityCalc() {
+    let popup = document.getElementById("reliabilityPopup");
+    popup.style.width = "700px";
+    popup.querySelector("a").style.left = "690px";
+
+    // Удаление предыдущих расчетов (если были)
+    let tbody = popup.querySelector("tbody");
+    while (tbody.childNodes.length > 1) {
+        tbody.removeChild(tbody.lastChild);
+    }
+
+    // Общая протяженность сети
+    let totalLength = 0;
+
+    for (let pipeId of app.pipes.keys()) {
+        // Длина одного участка
+        let points = app.pipes.get(pipeId).getLatLngs();
+        let length = 0;
+        for (let i = 0; i < points.length - 1; i++) {
+            length += points[0].distanceTo(points[i+1]);
+        }
+        totalLength += length;
+
+        // За одно записываем в свойства пайпа его натуральную длину
+        let info = app.objectsInfo.get(pipeId);
+        info.length = length;
+    }
+    document.getElementById("totalLengthValue").innerText = `${(totalLength / 1000).toFixed(3).toString()} км`;
+
+    // Средневзвешенная интенсивность отказа трубопровода
+    let N = Number(document.getElementById("periodOfView").value);
+    let years = Number(popup.querySelector("select").value);
+    let averageFailureRate = N / (totalLength * years);
+
+    document.getElementById("averageFailureRate").innerText = averageFailureRate.toFixed(10).toString();
+
+    // Вероятность безотказной работы всей системы
+    let totalProb = 1;
+
+    // Продолжительность отопительного периода
+    let periodOfHeat = Number(document.getElementById("periodOfHeat").value) / 365;
+
+    // Вероятность безотказной работы каждого участка сети
+    for (let pipeId of app.pipes.keys()) {
+        let info = app.objectsInfo.get(pipeId)
+        let row = document.createElement("tr");
+
+        let tdName = document.createElement("td");
+        tdName.innerText = info.name;
+
+        let tdDiameter = document.createElement("td");
+        tdDiameter.innerText = info.diameter;
+
+        let tdLength = document.createElement("td");
+        tdLength.innerText = (info.length / 1000).toFixed(3).toString();
+
+        let tdLambda = document.createElement("td");
+        let lambda = Number(info.diameter) * parseFloat(info.length) * averageFailureRate * 1e-6;
+        tdLambda.innerText = lambda.toFixed(10).toString();
+
+        let tdProb = document.createElement("td");
+        let pipeProb = Math.exp(-1 * lambda * periodOfHeat);
+        tdProb.innerText = pipeProb.toFixed(10).toString();
+        totalProb *= pipeProb;
+
+        row.append(tdName, tdDiameter, tdLength, tdLambda, tdProb);
+        tbody.append(row);
+    }
+
+    document.getElementById("totalProb").innerText = totalProb.toFixed(10).toString();
+
+    document.getElementById("reliabilityCalcResult").style.display = "flex";
+    popup.querySelector("table").style.display = "block";
+}
+
+// Валидатор введенных данных в окно расчета надежности
+function validatePeriods() {
+    let periodOfView = document.getElementById("periodOfView").value;
+    let periodOfHeat = document.getElementById("periodOfHeat").value;
+
+    let calcButton = document.querySelector("#reliabilityPopup button");
+
+    if (periodOfView != "" && periodOfHeat != "") {
+        calcButton.disabled = false;
+    }
+    else {
+        calcButton.disabled = true;
+    }
+}
+
+
+// Закрывает окно расчета надежности
+function closeReabilityPopup() {
+    document.getElementById("reliabilityPopup").style.display = "none";
+    document.getElementById("blackout").style.display = "none";
+}
+
 // ----------------------------------- Управление загрузкой/выгрузкой схем ------------------------------------------
 
 
@@ -705,8 +838,10 @@ function loadNetwork() {
         let data = JSON.parse(body.data);
 
         // Развертывание схемы (глобальная информация)
+        app.mode = data["global"].mode;
         app.id = data["global"].id;
         app.map.setView(data["global"].center, zoom=14);
+
 
         // Развертывание схемы (геообъекты)
         for (let obj of data["objects"]["nodes"]) {
@@ -723,26 +858,29 @@ function loadNetwork() {
             );
             new_pipe.addTo(app.map);
 
-            // Добавление стрелок
-            var decorator = L.polylineDecorator(new_pipe, {
-                patterns: [{
-                    offset: 10,   
-                    endOffset: 10,
-                    repeat: 40,
-                    symbol: L.Symbol.arrowHead({
-                        pixelSize: 15,
-                        headAngle: 35,
-                        pathOptions: {
-                            fillOpacity: 1,
-                            weight: 0
-                        }
-                    })
-                }]
-            }).addTo(app.map);
+            // Добавление направлений потока (только для схем ВС)
+            if (app.mode == "WATER") {
+                let decorator = L.polylineDecorator(new_pipe, {
+                    patterns: [{
+                        offset: 10,   
+                        endOffset: 10,
+                        repeat: 40,
+                        symbol: L.Symbol.arrowHead({
+                            pixelSize: 15,
+                            headAngle: 35,
+                            pathOptions: {
+                                fillOpacity: 1,
+                                weight: 0
+                            }
+                        })
+                    }]
+                }).addTo(app.map);
+
+                app.pipesArrows.set(obj.id, decorator);
+            }
 
             app.pipes.set(obj.id, new_pipe);
             app.objectsInfo.set(obj.id, new ParamInfo(false));
-            app.pipesArrows.set(obj.id, decorator);
         }
 
         // Развертывание схемы (информация об элементах сети)

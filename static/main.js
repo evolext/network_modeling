@@ -138,25 +138,37 @@ app.map.on("editable:vertex:contextmenu", function (e) {
     // Открытие контекстного меню редактора пайпа
     if (!app.editablePopup) {
         app.editablePopup= L.popup();
-        app.editablePopup.setContent(
-            "<div style='display: flex; flex-direction: column; align-items: center;'>" + 
-                "<h1>Путь</h1>" +
-                "<button class='continuePipe popupButton'>Продолжить</button>" +
-                "<button class='endPipe popupButton'>Завершить редактирование</button>" +
-                "<button class='removeVertex popupButton'>Удалить вершину</button>" +
-                "<button class='removePipe popupButton'>Удалить весь путь</button>" +
-            "</div>" +
-            "<div id='popupAddingNodes' style='display: flex; flex-direction: column; align-items: center; margin-top: 20px;'>" +
-                "<h1>Добавить объект</h1>" +
-                "<button class='initTower popupButton'>Водонапорная башня</button>" +
-                "<button class='initReservoir popupButton'>Контррезервуар</button>" +
-                "<button class='initStandpipe popupButton'>Колонка</button>" +
-                "<button class='initHydrant popupButton'>Гидрант</button>" +
-                "<button class='initWell popupButton'>Водопроводный колодец</button>" +
-                "<button class='initBranch popupButton'>Разветвление</button>" +
-                "<button class='initConsumer popupButton'>Потребитель</button>" +
-            "</div>"
-        );
+
+        let popupContent = "<div style='display: flex; flex-direction: column; align-items: center;'>" + 
+                                "<h1>Путь</h1>" +
+                                "<button class='continuePipe popupButton'>Продолжить</button>" +
+                                "<button class='endPipe popupButton'>Завершить редактирование</button>" +
+                                "<button class='removeVertex popupButton'>Удалить вершину</button>" +
+                                "<button class='removePipe popupButton'>Удалить весь путь</button>" +
+                            "</div>";
+        if (app.mode == "WATER") {
+            popupContent +=
+                "<div id='popupAddingNodes' style='display: flex; flex-direction: column; align-items: center; margin-top: 20px;'>" +
+                    "<h1>Добавить объект</h1>" +
+                    "<button class='initTower popupButton'>Водонапорная башня</button>" +
+                    "<button class='initReservoir popupButton'>Контррезервуар</button>" +
+                    "<button class='initStandpipe popupButton'>Колонка</button>" +
+                    "<button class='initHydrant popupButton'>Гидрант</button>" +
+                    "<button class='initWell popupButton'>Водопроводный колодец</button>" +
+                    "<button class='initBranch popupButton'>Разветвление</button>" +
+                    "<button class='initConsumer popupButton'>Потребитель</button>" +
+                "</div>";
+        }
+        else {
+            popupContent +=
+                "<div id='popupAddingNodes' style='display: flex; flex-direction: column; align-items: center; margin-top: 20px;'>" +
+                        "<button class='initWell popupButton'>Тепловая камера</button>" +
+                        "<button class='initBranch popupButton'>Разветвление</button>" +
+                        "<button class='initConsumer popupButton'>Потребитель</button>" +
+                "</div>";
+        }
+
+        app.editablePopup.setContent(popupContent);
     }
 
     app.editablePopup.setLatLng(e.latlng);

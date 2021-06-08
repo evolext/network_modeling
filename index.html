@@ -31,29 +31,50 @@
 </head>
 <body>
     <div id="wrapper">
-        <!-- <div id="plotPopup">
-            <p>Пьезометрический график</p>
-            <a id="cross" onclick="closePlotPopup()"><img src="./images/cross.png"></a>
+        <div id="reliabilityPopup">
+            <a href="#" class="cross"><img src="./images/cross.png"></a>
+            <p>Расчет надежности сети</p>
+            <div id="accidentInfoInput">
+                <div>
+                    <span>Число аварий за последних</span>
+                    <select></select>
+                    <span>года: </span>
+                    <input id="periodOfView" type="text" style="width: 3ch;">
+                </div>
+                <div>
+                    <span>Продолжительность отопительного периода:</span>
+                    <input id="periodOfHeat" type="text" style="width: 3ch;">
+                    <span>дней</span>
+                </div>
+            </div>
+            <button>Рассчитать</button>
+            <div id="reliabilityCalcResult">
+                <div>
+                    <span>Общая протяженность трубопровода</span>
+                    <span>L =</span>
+                    <span id="totalLengthValue"></span>
+                </div>
+                <div>
+                    <span>Средневзвешенная интенсивность отказа трубопровода</span>
+                    <span>&lambda;<sub>0</sub>=</span>
+                    <span id="averageFailureRate"></span>
+                </div>
+                <div>
+                    <span>Вероятность безотказной работы всей системы</span>
+                    <span>P =</span>
+                    <span id="totalProb"></span>
+                </div>
+            </div>
             <table>
                 <tr>
-                    <td>Начальный узел: </td>
-                    <td>
-                        <select id="begNode" onchange="piezometricSetNode()">
-                            <option disabled selected value="none">Не выбран</option>
-                        </select>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Конечный узел: </td>
-                    <td>
-                        <select id="endNode" onchange="piezometricSetNode()">
-                            <option disabled selected value="none">Не выбран</option>
-                        </select>
-                    </td>
+                    <th width="180px">Участок</th>
+                    <th width="90px">Диаметр, мм</th>
+                    <th width="90px">Длина, км</th>
+                    <th width="165px">Интенсивность отказа</th>
+                    <th width="165px">Вероятность безотказной работы</th>
                 </tr>
             </table>
-            <button disabled onclick="findAllRoutes()">Найти маршруты</button>
-        </div> -->
+        </div>
         <div id="blackout"></div>
         <div id="map"></div>
         <div id="toolsPanel">
@@ -70,8 +91,9 @@
             </div>
             <div id="calcPanel" hidden>
                 <h1>Выполнение расчетов</h1>
-                <button onclick="hydraulicСalc()"><label>Гидравлический</label></button>
-                <button onclick="showPlotPopup()"><label>Пьезометрический график</label></button>
+                <button class="water" onclick="hydraulicСalc()"><label>Гидравлический</label></button>
+                <button class="water" onclick="showPlotPopup()"><label>Пьезометрический график</label></button>
+                <button class="heat"  onclick="showReabilityPopup()"><label>Расчет надежности</label></button>
             </div>
             <div id="buttonsOfControlSchema">
                 <h1>Режим работы</h1>
