@@ -2,8 +2,9 @@
 Веб-приложение, позволяющее моделировать коммунальные сети разного рода и выполнять на основе этих моделей вычисления параметров сетей.
 
 ### Интерфейс клиентской части приложения
-![Интерфейс клиентской части](https://github.com/evolext/network_modeling/tree/master/images/interface_example.png)
+![Интерфейс клиентской части](https://github.com/evolext/network_modeling/blob/master/images/interface_example.png)
 
 ### Пример схемы водоснабжения
-![Пример схемы водонабжения](https://github.com/evolext/network_modeling/tree/master/images/water_scheme_example.png)
+![Пример схемы водонабжения](https://github.com/evolext/network_modeling/blob/master/images/water_scheme_example.png)
+
 
