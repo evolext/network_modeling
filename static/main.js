@@ -49,7 +49,7 @@ L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_toke
 // L.control.bigImage({position: 'topleft'}).addTo(map);
 
 
-// Назнвачает фукнкции добавления объекта на карту по клику
+// Назначает фукнкции добавления объекта на карту по клику
 document.getElementById("toolsPanel").querySelectorAll("#addingNodes button").forEach((item) => item.addEventListener("click", function() {
     // Отключаем обработчики, включенные ранее        
     app.map.off("click");
@@ -61,7 +61,8 @@ document.getElementById("toolsPanel").querySelectorAll("#addingNodes button").fo
 }));
 
 
-// Обрабатывает событие контектсного меню геообъекта "Начать путь"
+// Обрабатывает событие из контекстного меню объекта
+// сети для отрисовки участка
 $("#map").on("click", ".startPipe", function(e) {
     // Индекс инициализирующего объекта
     let objId = Number(e.target.dataset.id);
@@ -74,6 +75,7 @@ $("#map").on("click", ".startPipe", function(e) {
 
 // Обрабатывает удаление объекта с карты
 $("#map").on("click", ".removeObject", function(e) {
+    // Идентификатор удаляемого объекта
     let objectId = Number(e.target.dataset.id);
     let index = app.geoObjects.findIndex((obj) => obj.id == objectId);
 
@@ -86,11 +88,12 @@ $("#map").on("click", ".removeObject", function(e) {
     else {
         // Удаление с карты 
         app.pipes.get(objectId).removeFrom(app.map);
-        // Удаление декоратора
-        app.pipesArrows.get(objectId).removeFrom(app.map);
-        // Удаление соответствующих объектов
+        // Удаление декоратора (для сетей водоснабжения)
+        if (app.mode == "WATER") {
+            app.pipesArrows.get(objectId).removeFrom(app.map);
+            app.pipesArrows.delete(objectId);
+        }
         app.pipes.delete(objectId);
-        app.pipesArrows.delete(objectId);
     }
 
     // Удаление информации об объекте
@@ -202,7 +205,8 @@ app.map.on("editable:vertex:contextmenu", function (e) {
     }
 });
 
-// Показывает окно с гидравлическими характеристиками геообъекта
+// Обрабатывает событие из контекстного меню объекта сети на показ
+// окна с информацией о его технических характеристиках
 $("#map").on("click", ".getInfo", function(e) {
     app.map.closePopup();
 

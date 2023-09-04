@@ -3,10 +3,15 @@
 //////////////////////////////////////////////////////////////////
 
 
-// Добавляет объект на карту в указанное место
-function addObjectOnPoint(obj_type, e) {
+/**
+ * Создает объект в указанном месте на карте
+ * 
+ * @param  {string} obj_type - тип создаваемого объекта
+ * @param  {object} event - объект события карты
+ */
+function addObjectOnPoint(obj_type, event) {
     // Создание объекта
-    initObject(obj_type, e.latlng);
+    initObject(obj_type, event.latlng);
     // Удаляем обработчик события
     app.map.off("click");
 }
@@ -16,9 +21,8 @@ function addObjectOnPoint(obj_type, e) {
     @coordinates - координаты центра объекта
     @key - он же id объекта, в общем случае устанавливается автоматически,
            но при загрузке схемы указывается тот, что был у объекта на момент сохранения
-    @mode: 0 - выключенный объект, 1 - включенный объект
 */
-function initObject(type, coordinates, key=undefined, mode=1) {
+function initObject(type, coordinates, key=undefined) {
 
     // key не инициализируется при развертывании схемы
     if (typeof key === "undefined") {
@@ -26,7 +30,7 @@ function initObject(type, coordinates, key=undefined, mode=1) {
     }
         
     // Создание кастомной иконки объекта
-    let objIcon = createIcon(type, mode);
+    let objIcon = createIcon(type);
 
     var obj = L.marker(coordinates, {
         icon: objIcon,
@@ -50,9 +54,8 @@ function initObject(type, coordinates, key=undefined, mode=1) {
 
 /* Создает кастомную иконку геообъекта
     @type - тип геообъекта
-    @mode - включен ли геообъект
 */
-function createIcon(type, mode=true) {
+function createIcon(type) {
     let popupOffset;
     let size = [30, 30];
 
@@ -102,7 +105,7 @@ function createIcon(type, mode=true) {
     @type - тип геообъекта
     @obj_id - идентификатор геообъекта
 */
-function createCtxMenu(type, obj_id){
+function createCtxMenu(type, obj_id) {
     let ctxMenu = "<div style='display: flex; flex-direction: column;'>"
 
     switch(type) 
@@ -121,8 +124,11 @@ function createCtxMenu(type, obj_id){
     return ctxMenu;
 }
 
-
-// Создает объект участка
+/**
+ * Создает объект участка
+ * 
+ * @param  {L.latLng} firstPoint - начальная точка участка
+ */
 function initPipe(firstPoint) {
     let pipeId = app.id;
     

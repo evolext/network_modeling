@@ -5,13 +5,15 @@
 
 // --------------------------------------------- Для пайпа, находящихся в режиме редактирования -----------------------------------------------
 
-// Пункт "Путь.Продолжить": возобновление построения пути
+// Обрабатывает событие из контекстного меню редактирования
+// участка сети на добавление новой точки
 $("#map").on("click", ".continuePipe", function() {
     app.map.closePopup();  
     app.polylineEditor.continueBackward();
 });
 
-// Пункт "Путь.Завершить редактирвоание": завершение построения пути
+// Обрабатывает событие из контекстного меню редактируемого
+// участка на завершение его редактирования
 $("#map").on("click", ".endPipe", function() {
     app.map.closePopup();
     endPipeEdit();
@@ -31,7 +33,8 @@ function endPipeEdit() {
     app.pipePopup = null;
 }
 
-// Пункт "Путь.Удалить вершину": удаление последней вершины пути (непоследние удаляются просто левым кликом по ним)
+// Обрабатывает событие из контекстного меню
+// редактируемого участка на удаление одной из его вершин
 $("#map").on("click", ".removeVertex", function() {
     app.map.closePopup();
     // Объект редактируемого пайпа
@@ -46,7 +49,8 @@ $("#map").on("click", ".removeVertex", function() {
 });
 
 
-// Пункт "Путь.Удалить весь путь": удаление редактируемого пути
+// Обрабатывает событие из контекстного меню 
+// редактируемого участка на его удаление с карты
 $("#map").on("click", ".removePipe", function() {
     app.map.closePopup();
     let pipeId = app.editableId;
@@ -56,12 +60,14 @@ $("#map").on("click", ".removePipe", function() {
     pipe.toggleEdit();
     pipe.remove();
 
-    // Удаление декоратора
-    app.pipesArrows.get(pipeId).remove();
-
+    // Удаление декоратора (для сетей водоснабжения)
+    if (app.mode == "WATER") {
+        app.pipesArrows.get(pipeId).remove();
+        app.pipesArrows.delete(pipeId);
+    }
+    
     // Удаление всей соответствующей информации
     app.pipes.delete(pipeId);
-    app.pipesArrows.delete(pipeId);
     app.objectsInfo.delete(pipeId);
 
     app.polylineEditor = null;
@@ -72,7 +78,7 @@ $("#map").on("click", ".removePipe", function() {
 
 // ---------------------------------------- Для пайпа, который не находится в режиме редактирования -----------------------------------------------
 
-// Возобновление редактирования пути
+// Возобновляет редактирование участка
 $("#map").on("click", ".editPipe", function(e) {
     // Объект возобновляемого пайпа
     let pipeId = Number(e.target.dataset.id)

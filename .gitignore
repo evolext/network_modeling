@@ -1,12 +1,8 @@
-/static/images
+/node_modules
+.vscode
 /static/Leaflet.Editable.js
 /static/leafletProviders.js
-/static/layer
-package-lock.json
-/node_modules
-/calculationPrograms/hydraulic/main.exe
-/calculationPrograms/piezometric/main.exe
-заметки.txt
+/calculationPrograms/*/main.exe
 /networks
 /info
 /calc

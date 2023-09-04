@@ -139,7 +139,7 @@ function createNetwork() {
 
 
 // Выполнение гидравлического расчета
-function hydraulicСalc() {
+function hydraulicCalc() {
         
     // Формирование объекта с исходными данными для отправки
     data = {
@@ -428,7 +428,8 @@ function repaintRoute() {
 }
 
 
-// Строит пьезометрический график
+// Строит пьезометрический график падения напора
+// от пройденного пути
 function piezoPlot() {
     // Создание отдельного окна для графика
     let url = "./plot_piezometric.html";
@@ -452,14 +453,20 @@ function piezoPlot() {
 
         let route = document.getElementById("routesList").value.split('_');
 
+        let routeLength = 0;
         for (let i = 0 ; i < route.length; i += 2) {
             let info = app.objectsInfo.get(Number(route[i]));
             // Название узла
-            data.labels.push(info.name);
+            data.labels.push(`${info.name} (${routeLength} м)`);
             // Величина напора
             data.datasets[0].data.push(parseFloat(info.h));
+            // Вычисление общей длины участка
+            if (i != route.length - 1) {
+                routeLength += parseFloat(app.objectsInfo.get(Number(route[i+1])).length);
+            }
         }
 
+        // Настройки полотна
         let config = {
             type: "line",
             data,
@@ -478,20 +485,35 @@ function piezoPlot() {
                             font: {
                                 size: 18
                             }
-                        }
+                        },
+                        grid: {
+                            color: "black"
+                        },
                     },
                     x: {
+                        title: {
+                            display: true,
+                            text: "Путь",
+                            color: "black",
+                            font: {
+                                size: 18
+                            }
+                        },
                         ticks: {
                             color: "black",
                             font: {
                                 size: 14
                             }
-                        }
+                        },
+                        grid: {
+                            color: "black"
+                        },
                     }
                 }
             }
         };
 
+        // Отрисовка графика
         new Chart(
             plotWindow.document.getElementById("canvas"),
             config
@@ -578,6 +600,7 @@ function showReabilityPopup() {
 
 // Расчет надежности сети
 function reabilityCalc() {
+    // Изменение размеров окна для отображения результатов
     let popup = document.getElementById("reliabilityPopup");
     popup.style.width = "700px";
     popup.querySelector("a").style.left = "690px";
@@ -620,6 +643,7 @@ function reabilityCalc() {
     let periodOfHeat = Number(document.getElementById("periodOfHeat").value) / 365;
 
     // Вероятность безотказной работы каждого участка сети
+    // Результаты отображаются в панели управления
     for (let pipeId of app.pipes.keys()) {
         let info = app.objectsInfo.get(pipeId)
         let row = document.createElement("tr");
@@ -634,7 +658,7 @@ function reabilityCalc() {
         tdLength.innerText = (info.length / 1000).toFixed(3).toString();
 
         let tdLambda = document.createElement("td");
-        let lambda = Number(info.diameter) * parseFloat(info.length) * averageFailureRate * 1e-6;
+        let lambda = Math.PI * Number(info.diameter) * parseFloat(info.length) * averageFailureRate * 1e-6;
         tdLambda.innerText = lambda.toFixed(10).toString();
 
         let tdProb = document.createElement("td");
@@ -705,7 +729,7 @@ function saveNetwork() {
 }
 
 
-// Сохранение схемы на сервере
+// Отправляет данные о редактируемой сети для сохранения на носителе
 function confirmSave() {
     let schemaName = document.querySelector("#savePopup input").value;
     if (schemaName != "") {
